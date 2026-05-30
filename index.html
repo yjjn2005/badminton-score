@@ -1,19 +1,21 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
   <title>🏸 배드민턴 조 리그</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Noto Sans KR', sans-serif; background: #f0f4f8; }
-    .tab-bar { position:fixed; bottom:0; left:0; right:0; background:white; border-top:1px solid #e5e7eb; z-index:100; padding-bottom:env(safe-area-inset-bottom); }
-    .content { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
-    .confetti-wrap { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:200; overflow:hidden; }
-    @keyframes fall { 0%{transform:translateY(-10px) rotate(0deg);opacity:1} 100%{transform:translateY(105vh) rotate(720deg);opacity:0} }
-    .piece { position:absolute; animation:fall linear forwards; border-radius:2px; }
-    @media print { .no-print{display:none!important;} body{background:white;} }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR',sans-serif;background:#f1f5f9;}
+    .tab-bar{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #e2e8f0;z-index:100;padding-bottom:env(safe-area-inset-bottom);}
+    .content{padding-bottom:calc(68px + env(safe-area-inset-bottom));}
+    .confetti-wrap{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999;overflow:hidden;}
+    @keyframes fall{0%{transform:translateY(-10px) rotate(0deg);opacity:1}100%{transform:translateY(105vh) rotate(720deg);opacity:0}}
+    .piece{position:absolute;animation:fall linear forwards;border-radius:2px;}
+    .slide-up{animation:slideUp .25s ease-out;}
+    @keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+    @media print{.no-print{display:none!important;}body{background:white;}}
   </style>
 </head>
 <body>
@@ -21,116 +23,114 @@
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
 <script type="text/babel">
-const { useState, useEffect, useReducer } = React;
+const {useState,useEffect,useReducer,useRef,useCallback} = React;
 
-// ── 스케줄 생성 ─────────────────────────────────────────────
-// 5명: 2v2, 1명 쉬는 방식 → 5경기, 각자 4게임
-// 6명: 3v3, 전원 참여 방식 → 5경기, 각자 5게임
-function generateSchedule(ids) {
-  const p = ids;
-  const n = p.length;
-  if (n === 4) {
-    return [
-      { team1:[p[0],p[1]], team2:[p[2],p[3]], bye:[] },
-      { team1:[p[0],p[2]], team2:[p[1],p[3]], bye:[] },
-      { team1:[p[0],p[3]], team2:[p[1],p[2]], bye:[] },
-    ];
-  }
-  if (n === 5) {
-    // 5경기, 각자 4게임 (1번 쉼)
-    return [
-      { team1:[p[0],p[1]], team2:[p[2],p[3]], bye:[p[4]] },
-      { team1:[p[0],p[2]], team2:[p[3],p[4]], bye:[p[1]] },
-      { team1:[p[0],p[3]], team2:[p[1],p[4]], bye:[p[2]] },
-      { team1:[p[0],p[4]], team2:[p[1],p[2]], bye:[p[3]] },
-      { team1:[p[1],p[3]], team2:[p[2],p[4]], bye:[p[0]] },
-    ];
-  }
-  if (n === 6) {
-    // 5경기, 3v3, 각자 5게임 (전원 참여)
-    return [
-      { team1:[p[0],p[1],p[2]], team2:[p[3],p[4],p[5]], bye:[] },
-      { team1:[p[0],p[3],p[4]], team2:[p[1],p[2],p[5]], bye:[] },
-      { team1:[p[0],p[1],p[5]], team2:[p[2],p[3],p[4]], bye:[] },
-      { team1:[p[0],p[2],p[4]], team2:[p[1],p[3],p[5]], bye:[] },
-      { team1:[p[0],p[2],p[3]], team2:[p[1],p[4],p[5]], bye:[] },
-    ];
-  }
+// ─── 유틸 ───────────────────────────────────────────────
+function uid(){return Math.random().toString(36).slice(2,9);}
+
+function generateSchedule(ids){
+  const p=ids, n=p.length;
+  if(n===4) return [
+    {team1:[p[0],p[1]],team2:[p[2],p[3]],bye:[]},
+    {team1:[p[0],p[2]],team2:[p[1],p[3]],bye:[]},
+    {team1:[p[0],p[3]],team2:[p[1],p[2]],bye:[]},
+  ];
+  if(n===5) return [
+    {team1:[p[0],p[1]],team2:[p[2],p[3]],bye:[p[4]]},
+    {team1:[p[0],p[2]],team2:[p[3],p[4]],bye:[p[1]]},
+    {team1:[p[0],p[3]],team2:[p[1],p[4]],bye:[p[2]]},
+    {team1:[p[0],p[4]],team2:[p[1],p[2]],bye:[p[3]]},
+    {team1:[p[1],p[3]],team2:[p[2],p[4]],bye:[p[0]]},
+  ];
+  if(n===6) return [
+    {team1:[p[0],p[1],p[2]],team2:[p[3],p[4],p[5]],bye:[]},
+    {team1:[p[0],p[3],p[4]],team2:[p[1],p[2],p[5]],bye:[]},
+    {team1:[p[0],p[1],p[5]],team2:[p[2],p[3],p[4]],bye:[]},
+    {team1:[p[0],p[2],p[4]],team2:[p[1],p[3],p[5]],bye:[]},
+    {team1:[p[0],p[2],p[3]],team2:[p[1],p[4],p[5]],bye:[]},
+  ];
   return [];
 }
 
-// 개인 순위 계산
-function calcIndividualStandings(players, games) {
-  const stats = {};
-  players.forEach(pl => { stats[pl.id] = { player:pl, wins:0, losses:0, played:0 }; });
-  games.filter(g => g.winner).forEach(g => {
-    const winners = g.winner === 1 ? g.team1 : g.team2;
-    const losers  = g.winner === 1 ? g.team2 : g.team1;
-    winners.forEach(id => { if(stats[id]){ stats[id].wins++; stats[id].played++; } });
-    losers.forEach(id  => { if(stats[id]){ stats[id].losses++; stats[id].played++; } });
+function calcStandings(players, games){
+  const s={};
+  players.forEach(pl=>{s[pl.id]={player:pl,wins:0,losses:0,played:0};});
+  games.filter(g=>g.winner).forEach(g=>{
+    const winners=g.winner===1?g.team1:g.team2;
+    const losers =g.winner===1?g.team2:g.team1;
+    winners.forEach(id=>{if(s[id]){s[id].wins++;s[id].played++;}});
+    losers.forEach(id =>{if(s[id]){s[id].losses++;s[id].played++;}});
   });
-  return Object.values(stats).sort((a,b) => b.wins - a.wins || a.losses - b.losses);
+  return Object.values(s).sort((a,b)=>b.wins-a.wins||a.losses-b.losses);
 }
 
-// ── 초기 상태 ────────────────────────────────────────────────
-function uid() { return Math.random().toString(36).slice(2,9); }
-
-const INIT = { players:[], groups:[], activeGroup:null, tab:'setup' };
-
-function loadState() {
-  try { const s = localStorage.getItem('bdm_v4'); return s ? JSON.parse(s) : INIT; } catch { return INIT; }
-}
-
-function reducer(state, action) {
-  switch(action.type) {
-    case 'ADD_PLAYER': {
-      if(state.players.length >= 20) return state;
-      return { ...state, players:[...state.players, { id:uid(), name:action.name }] };
-    }
-    case 'REMOVE_PLAYER':
-      return { ...state, players:state.players.filter(p=>p.id!==action.id) };
-    case 'UPDATE_PLAYER':
-      return { ...state, players:state.players.map(p=>p.id===action.id?{...p,name:action.name}:p) };
-    case 'CREATE_GROUP': {
-      if(action.playerIds.length < 4 || action.playerIds.length > 6) return state;
-      const games = generateSchedule(action.playerIds).map((g,i)=>({ id:uid(), no:i+1, ...g, winner:null, score1:0, score2:0 }));
-      const grp = { id:uid(), name:action.name, playerIds:action.playerIds, games };
-      return { ...state, groups:[...state.groups, grp], activeGroup:grp.id, tab:'games' };
-    }
-    case 'REMOVE_GROUP':
-      return { ...state, groups:state.groups.filter(g=>g.id!==action.id), activeGroup:state.activeGroup===action.id?null:state.activeGroup };
-    case 'SET_ACTIVE_GROUP':
-      return { ...state, activeGroup:action.id, tab:'games' };
-    case 'RECORD_GAME': {
-      const groups = state.groups.map(g => {
-        if(g.id !== action.groupId) return g;
-        const games = g.games.map(gm => gm.id===action.gameId ? { ...gm, winner:action.winner, score1:action.score1, score2:action.score2 } : gm);
-        return { ...g, games };
+// OCR: 사진에서 이름 추출
+async function runOCR(file, onProgress){
+  return new Promise(async (resolve, reject)=>{
+    try {
+      const result = await Tesseract.recognize(file, 'kor+eng', {
+        logger: m=>{ if(m.status==='recognizing text') onProgress(Math.round(m.progress*100)); }
       });
-      return { ...state, groups };
+      resolve(result.data.text);
+    } catch(e){ reject(e); }
+  });
+}
+
+function parseKoreanNames(text){
+  // 한글 이름 추출: 2-4자 한글 토큰
+  const tokens = text.split(/[\s\n,|\-\/\\0-9\.]+/).map(t=>t.trim());
+  const names = tokens.filter(t=>/^[가-힣]{2,4}$/.test(t));
+  return [...new Set(names)];
+}
+
+// ─── 상태 ───────────────────────────────────────────────
+const GRP_COLORS = ['#6366f1','#8b5cf6','#ec4899','#f43f5e','#f97316','#eab308','#10b981','#0ea5e9'];
+
+const INIT={players:[],groups:[],view:{screen:'dashboard'},};
+
+function loadState(){
+  try{const s=localStorage.getItem('bdm_v5');return s?JSON.parse(s):INIT;}catch{return INIT;}
+}
+
+function reducer(state, action){
+  switch(action.type){
+    case 'ADD_PLAYER': return{...state,players:[...state.players,{id:uid(),name:action.name}]};
+    case 'ADD_PLAYERS_BULK': return{...state,players:[...state.players,...action.names.map(n=>({id:uid(),name:n}))]};
+    case 'REMOVE_PLAYER': return{...state,players:state.players.filter(p=>p.id!==action.id)};
+    case 'UPDATE_PLAYER': return{...state,players:state.players.map(p=>p.id===action.id?{...p,name:action.name}:p)};
+    case 'CREATE_GROUP':{
+      const games=generateSchedule(action.playerIds).map((g,i)=>({id:uid(),no:i+1,...g,winner:null,score1:null,score2:null}));
+      const grp={id:uid(),name:action.name,playerIds:action.playerIds,games,color:GRP_COLORS[state.groups.length%GRP_COLORS.length]};
+      return{...state,groups:[...state.groups,grp],view:{screen:'group',groupId:grp.id,tab:'bracket'}};
     }
-    case 'SET_TAB': return { ...state, tab:action.tab };
+    case 'REMOVE_GROUP': return{...state,groups:state.groups.filter(g=>g.id!==action.id),view:{screen:'dashboard'}};
+    case 'RECORD_GAME':{
+      const groups=state.groups.map(g=>{
+        if(g.id!==action.groupId) return g;
+        return{...g,games:g.games.map(gm=>gm.id===action.gameId?{...gm,winner:action.winner,score1:action.score1,score2:action.score2}:gm)};
+      });
+      return{...state,groups};
+    }
+    case 'SET_VIEW': return{...state,view:action.view};
+    case 'SET_GROUP_TAB': return{...state,view:{...state.view,tab:action.tab}};
     case 'RESET': return INIT;
     default: return state;
   }
 }
 
-// ── 콘페티 ──────────────────────────────────────────────────
-function Confetti({ show }) {
+// ─── 공통 컴포넌트 ──────────────────────────────────────
+function Confetti({show}){
   if(!show) return null;
-  const colors = ['#f6d365','#fda085','#84fab0','#8fd3f4','#a18cd1','#fbc2eb'];
-  return (
+  const colors=['#f6d365','#fda085','#84fab0','#8fd3f4','#a18cd1','#fbc2eb'];
+  return(
     <div className="confetti-wrap">
-      {Array.from({length:60},(_,i)=>(
+      {Array.from({length:70},(_,i)=>(
         <div key={i} className="piece" style={{
-          left:`${Math.random()*100}%`,
-          top:0,
-          width:8+Math.random()*8,
-          height:8+Math.random()*8,
+          left:`${Math.random()*100}%`,width:6+Math.random()*10,height:6+Math.random()*10,
           backgroundColor:colors[i%colors.length],
-          animationDelay:`${Math.random()*2}s`,
-          animationDuration:`${2+Math.random()*2}s`,
+          animationDelay:`${Math.random()*2.5}s`,animationDuration:`${2+Math.random()*2}s`,
           borderRadius:Math.random()>.5?'50%':'2px',
         }}/>
       ))}
@@ -138,191 +138,164 @@ function Confetti({ show }) {
   );
 }
 
-// ── 설정 화면 ────────────────────────────────────────────────
-function SetupScreen({ state, dispatch }) {
-  const [newName, setNewName] = useState('');
-  const [editId, setEditId] = useState(null);
-  const [editName, setEditName] = useState('');
-  const [selected, setSelected] = useState([]);
-  const [groupName, setGroupName] = useState('');
-  const [step, setStep] = useState('players'); // players | group
+// OCR 패널
+function OcrPanel({mode, onNames, onText, onClose}){
+  const [stage,setStage]=useState('ready'); // ready|processing|done|error
+  const [progress,setProgress]=useState(0);
+  const [ocrText,setOcrText]=useState('');
+  const [names,setNames]=useState([]);
+  const [editText,setEditText]=useState('');
+  const fileRef=useRef();
 
-  const addPlayer = () => {
-    const name = newName.trim() || `선수 ${state.players.length+1}`;
-    dispatch({ type:'ADD_PLAYER', name });
-    setNewName('');
+  const handleFile=async(e)=>{
+    const file=e.target.files?.[0];
+    if(!file) return;
+    setStage('processing'); setProgress(0);
+    try{
+      const text=await runOCR(file,setProgress);
+      setOcrText(text); setEditText(text);
+      if(mode==='names'){
+        const extracted=parseKoreanNames(text);
+        setNames(extracted);
+      }
+      setStage('done');
+    }catch{setStage('error');}
   };
 
-  const toggleSelect = (id) => {
-    setSelected(prev => prev.includes(id) ? prev.filter(x=>x!==id) : prev.length<6 ? [...prev,id] : prev);
-  };
+  const toggleName=(n)=>setNames(prev=>prev.includes(n)?prev.filter(x=>x!==n):[...prev,n]);
 
-  const createGroup = () => {
-    if(selected.length < 4) return;
-    const name = groupName.trim() || `${selected.length}인조 ${state.groups.length+1}조`;
-    dispatch({ type:'CREATE_GROUP', playerIds:selected, name });
-    setSelected([]); setGroupName(''); setStep('players');
-  };
-
-  if(step === 'group') return (
-    <div className="content max-w-lg mx-auto p-4">
-      <button onClick={()=>setStep('players')} className="text-indigo-500 mb-4 flex items-center gap-1">← 돌아가기</button>
-      <div className="bg-white rounded-2xl shadow-sm p-4 mb-4">
-        <h2 className="font-bold text-gray-800 mb-3">조 구성</h2>
-        <p className="text-sm text-gray-500 mb-3">
-          선택된 선수: <strong className="text-indigo-600">{selected.length}명</strong>
-          {selected.length===5 && <span className="ml-2 text-xs text-gray-400">(2v2, 각자 4경기)</span>}
-          {selected.length===6 && <span className="ml-2 text-xs text-gray-400">(3v3, 각자 5경기)</span>}
-          {selected.length===4 && <span className="ml-2 text-xs text-gray-400">(2v2, 각자 3경기)</span>}
-        </p>
-        {state.players.filter(p=>selected.includes(p.id)).map((p,i)=>(
-          <div key={p.id} className="flex items-center gap-2 py-2 border-b border-gray-50">
-            <span className="text-gray-400 text-sm w-6">{i+1}</span>
-            <span className="flex-1 font-medium">{p.name}</span>
-            <button onClick={()=>setSelected(s=>s.filter(x=>x!==p.id))} className="text-red-400 text-sm">제거</button>
-          </div>
-        ))}
-        <div className="mt-3">
-          <label className="text-sm text-gray-500">조 이름</label>
-          <input className="w-full border border-gray-200 rounded-xl px-3 py-2 mt-1 text-sm focus:border-indigo-400 outline-none"
-            placeholder={`${selected.length}인조 ${state.groups.length+1}조`}
-            value={groupName} onChange={e=>setGroupName(e.target.value)} />
+  return(
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center" onClick={onClose}>
+      <div className="bg-white rounded-t-3xl w-full max-w-lg p-5 pb-8 slide-up max-h-[85vh] overflow-y-auto" onClick={e=>e.stopPropagation()}>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="font-bold text-lg">
+            {mode==='names'?'📷 대진표 사진으로 선수 추출':'📷 결과 사진 인식'}
+          </h3>
+          <button onClick={onClose} className="text-gray-400 text-2xl leading-none">×</button>
         </div>
-      </div>
-      <button onClick={createGroup} disabled={selected.length<4}
-        className={`w-full py-3 rounded-xl font-bold text-lg ${selected.length>=4?'bg-indigo-500 text-white':'bg-gray-200 text-gray-400'}`}>
-        조 생성 ({selected.length}명 · {selected.length===5?5:selected.length===6?5:3}경기)
-      </button>
-    </div>
-  );
 
-  return (
-    <div className="content max-w-lg mx-auto p-4">
-      {/* 선수 목록 */}
-      <div className="bg-white rounded-2xl shadow-sm p-4 mb-4">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-bold text-gray-800">선수 목록 <span className="text-indigo-500 text-sm">{state.players.length}명</span></h2>
-        </div>
-        {state.players.map((p,i)=>(
-          <div key={p.id} className="flex items-center gap-2 py-2 border-b border-gray-50 last:border-0">
-            <span className="text-gray-400 text-sm w-5">{i+1}</span>
-            {editId===p.id ? (
-              <>
-                <input autoFocus className="flex-1 border border-indigo-300 rounded-lg px-2 py-1 text-sm"
-                  value={editName} onChange={e=>setEditName(e.target.value)}
-                  onKeyDown={e=>{ if(e.key==='Enter'){ dispatch({type:'UPDATE_PLAYER',id:p.id,name:editName.trim()||p.name}); setEditId(null); } if(e.key==='Escape') setEditId(null); }} />
-                <button onClick={()=>{ dispatch({type:'UPDATE_PLAYER',id:p.id,name:editName.trim()||p.name}); setEditId(null); }} className="text-indigo-600 text-sm">저장</button>
-              </>
-            ) : (
-              <>
-                <span className="flex-1 font-medium">{p.name}</span>
-                <button onClick={()=>{setEditId(p.id);setEditName(p.name);}} className="text-gray-400 px-1">✏️</button>
-                <button onClick={()=>dispatch({type:'REMOVE_PLAYER',id:p.id})} className="text-gray-400 px-1">🗑️</button>
-              </>
-            )}
-          </div>
-        ))}
-        <div className="flex gap-2 mt-3">
-          <input className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:border-indigo-400 outline-none"
-            placeholder="선수 이름..." value={newName} onChange={e=>setNewName(e.target.value)}
-            onKeyDown={e=>e.key==='Enter'&&addPlayer()} />
-          <button onClick={addPlayer} className="bg-indigo-500 text-white px-4 py-2 rounded-xl text-sm font-medium">추가</button>
-        </div>
-      </div>
-
-      {/* 조 편성 */}
-      {state.players.length >= 4 && (
-        <div className="bg-white rounded-2xl shadow-sm p-4 mb-4">
-          <h2 className="font-bold text-gray-800 mb-3">조 편성 <span className="text-sm font-normal text-gray-400">(4~6명 선택)</span></h2>
-          <div className="grid grid-cols-3 gap-2 mb-3">
-            {state.players.map(p=>(
-              <button key={p.id} onClick={()=>toggleSelect(p.id)}
-                className={`py-2 px-3 rounded-xl text-sm font-medium border-2 transition-all ${selected.includes(p.id)?'border-indigo-500 bg-indigo-50 text-indigo-700':'border-gray-200 text-gray-600'}`}>
-                {p.name}
+        {stage==='ready'&&(
+          <div>
+            <div className="border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center mb-4">
+              <div className="text-4xl mb-2">📸</div>
+              <p className="text-gray-500 text-sm mb-3">
+                {mode==='names'?'선수 이름이 적힌 대진표를 촬영하세요':'수기로 작성된 경기 결과를 촬영하세요'}
+              </p>
+              <button onClick={()=>fileRef.current.click()} className="bg-indigo-500 text-white px-6 py-2.5 rounded-xl font-bold">
+                📷 사진 촬영 / 갤러리
               </button>
-            ))}
+            </div>
+            <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFile}/>
           </div>
-          <button onClick={()=>setStep('group')} disabled={selected.length<4||selected.length>6}
-            className={`w-full py-2.5 rounded-xl font-bold ${selected.length>=4&&selected.length<=6?'bg-indigo-500 text-white':'bg-gray-100 text-gray-400'}`}>
-            {selected.length<4?`${4-selected.length}명 더 선택하세요`:selected.length>6?'최대 6명':'조 구성하기 →'}
-          </button>
-        </div>
-      )}
+        )}
 
-      {/* 기존 조 */}
-      {state.groups.length > 0 && (
-        <div className="bg-white rounded-2xl shadow-sm p-4">
-          <h2 className="font-bold text-gray-800 mb-3">편성된 조</h2>
-          {state.groups.map(g => {
-            const done = g.games.filter(gm=>gm.winner).length;
-            return (
-              <div key={g.id} className="flex items-center py-2 border-b border-gray-50 last:border-0">
-                <div className="flex-1">
-                  <div className="font-medium">{g.name}</div>
-                  <div className="text-xs text-gray-400">{g.playerIds.length}명 · {done}/{g.games.length}경기</div>
-                </div>
-                <button onClick={()=>dispatch({type:'SET_ACTIVE_GROUP',id:g.id})} className="text-indigo-500 text-sm mr-3">보기</button>
-                <button onClick={()=>dispatch({type:'REMOVE_GROUP',id:g.id})} className="text-gray-300 hover:text-red-400">✕</button>
-              </div>
-            );
-          })}
-        </div>
-      )}
+        {stage==='processing'&&(
+          <div className="py-8 text-center">
+            <div className="text-4xl mb-3 animate-pulse">🔍</div>
+            <p className="text-gray-600 font-medium mb-3">텍스트 인식 중...</p>
+            <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-full bg-indigo-500 rounded-full transition-all" style={{width:`${progress}%`}}/>
+            </div>
+            <p className="text-sm text-gray-400 mt-2">{progress}%</p>
+          </div>
+        )}
+
+        {stage==='error'&&(
+          <div className="py-6 text-center">
+            <div className="text-4xl mb-2">❌</div>
+            <p className="text-gray-500">인식에 실패했습니다.</p>
+            <button onClick={()=>setStage('ready')} className="mt-3 text-indigo-500 font-medium">다시 시도</button>
+          </div>
+        )}
+
+        {stage==='done'&&mode==='names'&&(
+          <div>
+            <p className="text-sm text-gray-500 mb-3">인식된 이름을 선택하세요 (탭으로 토글)</p>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {names.length>0 ? names.map(n=>(
+                <button key={n} onClick={()=>toggleName(n)}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium border-2 ${names.includes(n)?'bg-indigo-100 border-indigo-400 text-indigo-700':'bg-gray-100 border-gray-200 text-gray-500 line-through'}`}>
+                  {n}
+                </button>
+              )) : <p className="text-gray-400 text-sm">이름을 찾지 못했습니다. 직접 입력해 주세요.</p>}
+            </div>
+            <div className="mb-3">
+              <p className="text-xs text-gray-400 mb-1">OCR 원문 (직접 수정 가능)</p>
+              <textarea value={editText} onChange={e=>{setEditText(e.target.value);setNames(parseKoreanNames(e.target.value));}}
+                className="w-full h-24 text-xs border border-gray-200 rounded-xl p-2 resize-none focus:border-indigo-400 outline-none"/>
+            </div>
+            <button onClick={()=>onNames(names.filter(n=>n))} disabled={names.length<2}
+              className={`w-full py-3 rounded-xl font-bold ${names.length>=2?'bg-indigo-500 text-white':'bg-gray-200 text-gray-400'}`}>
+              {names.length}명 선수 추가
+            </button>
+          </div>
+        )}
+
+        {stage==='done'&&mode==='result'&&(
+          <div>
+            <p className="text-sm text-gray-500 mb-2">인식된 내용을 참고하여 경기 결과를 입력하세요</p>
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4">
+              <p className="text-xs font-medium text-amber-700 mb-1">📋 OCR 인식 결과</p>
+              <p className="text-xs text-amber-800 whitespace-pre-wrap font-mono">{ocrText.slice(0,400)}</p>
+            </div>
+            <button onClick={()=>onText(ocrText)} className="w-full py-3 bg-indigo-500 text-white rounded-xl font-bold">
+              확인 (결과 입력 화면으로)
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
-// ── 경기 입력 모달 ────────────────────────────────────────────
-function GameModal({ game, playerMap, onSave, onClose }) {
-  const [winner, setWinner] = useState(game.winner || null);
-  const [s1, setS1] = useState(game.score1 || '');
-  const [s2, setS2] = useState(game.score2 || '');
+// 경기 입력 모달
+function GameModal({game,playerMap,groupId,dispatch,onClose}){
+  const [winner,setWinner]=useState(game.winner||null);
+  const [s1,setS1]=useState(game.score1!=null?game.score1:'');
+  const [s2,setS2]=useState(game.score2!=null?game.score2:'');
 
-  const t1names = game.team1.map(id=>playerMap[id]?.name||id).join(' + ');
-  const t2names = game.team2.map(id=>playerMap[id]?.name||id).join(' + ');
+  const t1=game.team1.map(id=>playerMap[id]||'?').join(' + ');
+  const t2=game.team2.map(id=>playerMap[id]||'?').join(' + ');
 
-  return (
+  const save=()=>{
+    if(!winner) return;
+    dispatch({type:'RECORD_GAME',groupId,gameId:game.id,winner,score1:parseInt(s1)||0,score2:parseInt(s2)||0});
+    onClose();
+  };
+
+  return(
     <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center" onClick={onClose}>
-      <div className="bg-white rounded-t-3xl w-full max-w-lg p-6 pb-10" onClick={e=>e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-lg">경기 {game.no} 결과 입력</h3>
-          <button onClick={onClose} className="text-gray-400 text-2xl leading-none">×</button>
+      <div className="bg-white rounded-t-3xl w-full max-w-lg p-6 pb-10 slide-up" onClick={e=>e.stopPropagation()}>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="font-bold text-lg">경기 {game.no} 결과</h3>
+          <button onClick={onClose} className="text-gray-400 text-2xl">×</button>
         </div>
-
-        <div className="text-xs text-gray-400 text-center mb-4">승리한 팀을 선택하세요</div>
-
+        <p className="text-xs text-gray-400 text-center mb-3">승리팀을 선택하세요</p>
         <div className="grid grid-cols-2 gap-3 mb-4">
-          <button onClick={()=>setWinner(1)}
-            className={`p-4 rounded-2xl border-2 transition-all ${winner===1?'border-indigo-500 bg-indigo-50':'border-gray-200'}`}>
-            <div className="text-xs text-gray-400 mb-1">팀 1</div>
-            <div className="font-bold text-indigo-700 text-sm leading-snug">{t1names}</div>
-            {winner===1 && <div className="text-xs text-indigo-500 mt-2">🏆 승리</div>}
-          </button>
-          <button onClick={()=>setWinner(2)}
-            className={`p-4 rounded-2xl border-2 transition-all ${winner===2?'border-rose-500 bg-rose-50':'border-gray-200'}`}>
-            <div className="text-xs text-gray-400 mb-1">팀 2</div>
-            <div className="font-bold text-rose-700 text-sm leading-snug">{t2names}</div>
-            {winner===2 && <div className="text-xs text-rose-500 mt-2">🏆 승리</div>}
-          </button>
+          {[[1,t1,'indigo'],[2,t2,'rose']].map(([w,name,c])=>(
+            <button key={w} onClick={()=>setWinner(w)}
+              className={`p-4 rounded-2xl border-2 text-center transition-all ${winner===w?`border-${c}-500 bg-${c}-50`:'border-gray-200'}`}>
+              <div className="text-xs text-gray-400 mb-1">팀 {w}</div>
+              <div className={`font-bold text-sm ${winner===w?`text-${c}-700`:'text-gray-700'}`}>{name}</div>
+              {winner===w&&<div className="text-xs mt-1">🏆 승리</div>}
+            </button>
+          ))}
         </div>
-
         <div className="flex items-center gap-3 mb-5">
-          <div className="flex-1">
-            <label className="text-xs text-gray-400">팀1 점수</label>
+          <div className="flex-1 text-center">
+            <p className="text-xs text-gray-400 mb-1">팀1 점수</p>
             <input type="number" inputMode="numeric" value={s1} onChange={e=>setS1(e.target.value)}
-              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-center text-xl font-bold mt-1 focus:border-indigo-400 outline-none" placeholder="0" />
+              className="w-full border border-gray-200 rounded-xl py-2 text-center text-2xl font-black focus:border-indigo-400 outline-none" placeholder="0"/>
           </div>
-          <span className="text-gray-400 font-bold mt-5">:</span>
-          <div className="flex-1">
-            <label className="text-xs text-gray-400">팀2 점수</label>
+          <span className="text-gray-300 font-bold text-xl mt-4">:</span>
+          <div className="flex-1 text-center">
+            <p className="text-xs text-gray-400 mb-1">팀2 점수</p>
             <input type="number" inputMode="numeric" value={s2} onChange={e=>setS2(e.target.value)}
-              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-center text-xl font-bold mt-1 focus:border-rose-400 outline-none" placeholder="0" />
+              className="w-full border border-gray-200 rounded-xl py-2 text-center text-2xl font-black focus:border-rose-400 outline-none" placeholder="0"/>
           </div>
         </div>
-
-        <button onClick={()=>{ if(winner) onSave(winner, parseInt(s1)||0, parseInt(s2)||0); }}
-          disabled={!winner}
-          className={`w-full py-3 rounded-xl font-bold text-lg ${winner?'bg-indigo-500 text-white':'bg-gray-200 text-gray-400'}`}>
+        <button onClick={save} disabled={!winner}
+          className={`w-full py-3 rounded-xl font-bold text-lg ${winner?'bg-indigo-500 text-white active:scale-95':'bg-gray-100 text-gray-400'}`}>
           저장
         </button>
       </div>
@@ -330,236 +303,558 @@ function GameModal({ game, playerMap, onSave, onClose }) {
   );
 }
 
-// ── 경기 화면 ────────────────────────────────────────────────
-function GamesScreen({ state, dispatch }) {
-  const [modalGame, setModalGame] = useState(null);
+// ─── 대시보드 ──────────────────────────────────────────
+function Dashboard({state,dispatch}){
+  const playerMap={};
+  state.players.forEach(p=>{playerMap[p.id]=p.name;});
 
-  const group = state.groups.find(g=>g.id===state.activeGroup);
-  if(!group) return (
-    <div className="content max-w-lg mx-auto p-4 flex items-center justify-center min-h-[60vh]">
-      <div className="text-center">
-        <div className="text-5xl mb-3">🏸</div>
-        <p className="text-gray-500">조를 선택하세요</p>
-        <button onClick={()=>dispatch({type:'SET_TAB',tab:'setup'})} className="mt-3 text-indigo-500 font-medium">설정으로 이동</button>
-      </div>
+  const [showReset,setShowReset]=useState(false);
+
+  if(state.groups.length===0) return(
+    <div className="content max-w-lg mx-auto p-4 flex flex-col items-center justify-center min-h-[70vh]">
+      <div className="text-7xl mb-4">🏸</div>
+      <h2 className="text-xl font-black text-gray-700 mb-2">배드민턴 조 리그</h2>
+      <p className="text-gray-400 text-sm mb-6 text-center">선수를 등록하고 조를 편성하면<br/>대진표와 순위가 자동 생성됩니다</p>
+      <button onClick={()=>dispatch({type:'SET_VIEW',view:{screen:'setup'}})}
+        className="bg-indigo-500 text-white px-8 py-3 rounded-2xl font-bold text-lg">
+        ⚙️ 시작하기
+      </button>
     </div>
   );
 
-  const playerMap = {};
-  state.players.forEach(p=>{ playerMap[p.id]=p; });
-
-  const done = group.games.filter(g=>g.winner).length;
-  const total = group.games.length;
-  const format = group.playerIds.length===6?'3v3':'2v2';
-
-  return (
+  return(
     <div className="content max-w-lg mx-auto p-4">
-      <div className="bg-white rounded-2xl shadow-sm p-4 mb-4">
-        <div className="flex justify-between items-center mb-2">
-          <span className="font-bold text-gray-800">{group.name}</span>
-          <span className="text-xs text-gray-400">{format} · {done}/{total}경기</span>
-        </div>
-        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-          <div className="h-full bg-indigo-500 rounded-full transition-all" style={{width:`${total?done/total*100:0}%`}}/>
+      {/* 헤더 요약 */}
+      <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-4 mb-4 text-white">
+        <div className="flex justify-between items-start">
+          <div>
+            <h2 className="font-black text-lg">전체 현황</h2>
+            <p className="text-indigo-100 text-sm mt-0.5">
+              {state.groups.length}개 조 · 선수 {state.players.length}명
+            </p>
+          </div>
+          <div className="text-right">
+            <div className="text-2xl font-black">
+              {state.groups.reduce((a,g)=>a+g.games.filter(gm=>gm.winner).length,0)}
+            </div>
+            <div className="text-indigo-200 text-xs">
+              / {state.groups.reduce((a,g)=>a+g.games.length,0)} 경기 완료
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* 조 선택 탭 */}
-      {state.groups.length > 1 && (
-        <div className="flex gap-2 mb-3 overflow-x-auto pb-1">
-          {state.groups.map(g=>(
-            <button key={g.id} onClick={()=>dispatch({type:'SET_ACTIVE_GROUP',id:g.id})}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium ${g.id===state.activeGroup?'bg-indigo-500 text-white':'bg-white text-gray-600'}`}>
-              {g.name}
-            </button>
-          ))}
-        </div>
-      )}
+      {/* 조별 카드 */}
+      {state.groups.map(grp=>{
+        const grpPlayers=grp.playerIds.map(id=>state.players.find(p=>p.id===id)).filter(Boolean);
+        const standings=calcStandings(grpPlayers,grp.games);
+        const done=grp.games.filter(g=>g.winner).length;
+        const total=grp.games.length;
+        const pct=total?Math.round(done/total*100):0;
+        const isComplete=done===total&&total>0;
 
-      {group.games.map(game => {
-        const t1 = game.team1.map(id=>playerMap[id]?.name||'?').join(' + ');
-        const t2 = game.team2.map(id=>playerMap[id]?.name||'?').join(' + ');
-        const byeNames = game.bye.map(id=>playerMap[id]?.name||'?').join(', ');
-        return (
-          <div key={game.id} className="bg-white rounded-2xl shadow-sm p-4 mb-3">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-gray-400 font-medium">경기 {game.no}</span>
-              {game.winner
-                ? <span className="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded-full">완료</span>
-                : <span className="text-xs bg-yellow-100 text-yellow-600 px-2 py-0.5 rounded-full">대기</span>}
-            </div>
-            <div className="flex items-center gap-2">
-              <div className={`flex-1 text-sm font-bold text-center py-2 rounded-xl ${game.winner===1?'bg-indigo-100 text-indigo-700':'text-gray-700'}`}>{t1}</div>
-              <div className="text-center min-w-12">
-                {game.winner
-                  ? <span className="font-black text-lg text-gray-700">{game.score1}:{game.score2}</span>
-                  : <span className="text-gray-300 font-bold">VS</span>}
+        return(
+          <div key={grp.id} className="bg-white rounded-2xl shadow-sm mb-4 overflow-hidden">
+            {/* 조 헤더 */}
+            <div className="px-4 pt-4 pb-3" style={{borderLeft:`4px solid ${grp.color}`}}>
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="font-black text-gray-800 text-base">{grp.name}</h3>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {grp.playerIds.length}명 · {grp.playerIds.length===6?'3v3':'2v2'} · {done}/{total}경기
+                    {isComplete&&' ✅'}
+                  </p>
+                </div>
+                <button onClick={()=>dispatch({type:'REMOVE_GROUP',id:grp.id})}
+                  className="text-gray-200 hover:text-red-400 text-xl p-1">🗑</button>
               </div>
-              <div className={`flex-1 text-sm font-bold text-center py-2 rounded-xl ${game.winner===2?'bg-rose-100 text-rose-700':'text-gray-700'}`}>{t2}</div>
+              {/* 진행바 */}
+              <div className="h-1.5 bg-gray-100 rounded-full mt-2 overflow-hidden">
+                <div className="h-full rounded-full transition-all" style={{width:`${pct}%`,backgroundColor:grp.color}}/>
+              </div>
             </div>
-            {byeNames && <div className="text-xs text-gray-400 mt-2 text-center">쉬는 선수: {byeNames}</div>}
-            <div className="text-right mt-2">
-              <button onClick={()=>setModalGame(game)}
-                className="text-sm text-indigo-500 font-medium hover:text-indigo-700">
-                {game.winner?'수정':'결과 입력'} →
-              </button>
+
+            {/* 미니 순위 */}
+            <div className="px-4 py-2 bg-gray-50 border-t border-gray-100">
+              <p className="text-xs font-semibold text-gray-400 mb-2">🏆 현재 순위</p>
+              <div className="flex gap-3">
+                {standings.slice(0,3).map((row,idx)=>(
+                  <div key={row.player.id} className="flex items-center gap-1.5 flex-1 min-w-0">
+                    <span className="text-sm flex-shrink-0">{['🥇','🥈','🥉'][idx]}</span>
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold text-gray-700 truncate">{row.player.name}</div>
+                      <div className="text-xs text-gray-400">{row.wins}승 {row.losses}패</div>
+                    </div>
+                  </div>
+                ))}
+                {standings.length>3&&<div className="text-xs text-gray-300 self-center">+{standings.length-3}</div>}
+              </div>
+            </div>
+
+            {/* 액션 버튼 */}
+            <div className="grid grid-cols-3 divide-x divide-gray-100 border-t border-gray-100">
+              {[
+                {icon:'📋',label:'대진표',tab:'bracket'},
+                {icon:'📝',label:'경기 결과',tab:'results'},
+                {icon:'🏆',label:'순위',tab:'standings'},
+              ].map(btn=>(
+                <button key={btn.tab}
+                  onClick={()=>dispatch({type:'SET_VIEW',view:{screen:'group',groupId:grp.id,tab:btn.tab}})}
+                  className="flex flex-col items-center py-3 gap-1 hover:bg-gray-50 active:bg-gray-100 transition-colors">
+                  <span className="text-xl">{btn.icon}</span>
+                  <span className="text-xs font-semibold text-gray-600">{btn.label}</span>
+                </button>
+              ))}
             </div>
           </div>
         );
       })}
 
-      {modalGame && (
-        <GameModal
-          game={modalGame}
-          playerMap={playerMap}
-          onSave={(winner,s1,s2)=>{
-            dispatch({type:'RECORD_GAME',groupId:group.id,gameId:modalGame.id,winner,score1:s1,score2:s2});
-            setModalGame(null);
-          }}
-          onClose={()=>setModalGame(null)}
-        />
+      {/* 하단 버튼 */}
+      <div className="flex gap-2 mt-2">
+        <button onClick={()=>dispatch({type:'SET_VIEW',view:{screen:'setup'}})}
+          className="flex-1 py-3 bg-indigo-500 text-white rounded-xl font-bold">
+          + 조 추가
+        </button>
+        <button onClick={()=>setShowReset(true)}
+          className="px-4 py-3 bg-gray-100 text-gray-500 rounded-xl font-medium text-sm">
+          초기화
+        </button>
+      </div>
+
+      {showReset&&(
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
+            <h3 className="font-bold text-lg mb-2">전체 초기화</h3>
+            <p className="text-gray-500 text-sm mb-4">모든 선수·조·경기 데이터가 삭제됩니다.</p>
+            <div className="flex gap-2">
+              <button onClick={()=>setShowReset(false)} className="flex-1 py-2 border border-gray-200 rounded-xl">취소</button>
+              <button onClick={()=>{dispatch({type:'RESET'});setShowReset(false);}} className="flex-1 py-2 bg-red-500 text-white rounded-xl font-bold">삭제</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
 }
 
-// ── 순위 화면 ────────────────────────────────────────────────
-function StandingsScreen({ state }) {
-  const [showConfetti, setShowConfetti] = useState(false);
-  const group = state.groups.find(g=>g.id===state.activeGroup);
+// ─── 설정 화면 ──────────────────────────────────────────
+function SetupScreen({state,dispatch}){
+  const [newName,setNewName]=useState('');
+  const [editId,setEditId]=useState(null);
+  const [editName,setEditName]=useState('');
+  const [selected,setSelected]=useState([]);
+  const [groupName,setGroupName]=useState('');
+  const [step,setStep]=useState('players'); // players | compose
+  const [showOcr,setShowOcr]=useState(false);
 
-  if(!group) return (
-    <div className="content max-w-lg mx-auto p-4 flex items-center justify-center min-h-[60vh]">
-      <p className="text-gray-500">조를 선택하세요</p>
-    </div>
-  );
+  const addPlayer=()=>{
+    const name=newName.trim()||`선수${state.players.length+1}`;
+    dispatch({type:'ADD_PLAYER',name});
+    setNewName('');
+  };
 
-  const playerMap = {};
-  state.players.forEach(p=>{ playerMap[p.id]=p; });
-  const groupPlayers = group.playerIds.map(id=>playerMap[id]).filter(Boolean);
-  const standings = calcIndividualStandings(groupPlayers, group.games);
-  const allDone = group.games.length > 0 && group.games.every(g=>g.winner);
-  const medals = ['🥇','🥈','🥉'];
+  const toggle=(id)=>setSelected(p=>p.includes(id)?p.filter(x=>x!==id):p.length<6?[...p,id]:p);
 
-  return (
+  const createGroup=()=>{
+    if(selected.length<4) return;
+    const gn=groupName.trim()||`${selected.length}인 ${state.groups.length+1}조`;
+    dispatch({type:'CREATE_GROUP',playerIds:selected,name:gn});
+    setSelected([]); setGroupName(''); setStep('players');
+  };
+
+  const gamesCount=n=>n===5?5:n===6?5:n===4?3:0;
+  const playsEach=n=>n===5?4:n===6?5:n===4?3:0;
+
+  if(step==='compose') return(
     <div className="content max-w-lg mx-auto p-4">
-      <Confetti show={showConfetti} />
-
-      {/* 조 선택 */}
-      {state.groups.length > 1 && (
-        <div className="flex gap-2 mb-3 overflow-x-auto pb-1">
-          {state.groups.map(g=>(
-            <button key={g.id} onClick={()=>{}}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium ${g.id===state.activeGroup?'bg-indigo-500 text-white':'bg-white text-gray-600'}`}>
-              {g.name}
+      <button onClick={()=>setStep('players')} className="text-indigo-500 mb-4">← 선수 목록으로</button>
+      <div className="bg-white rounded-2xl shadow-sm p-4 mb-4">
+        <div className="flex justify-between items-center mb-3">
+          <h2 className="font-bold">조 편성</h2>
+          <span className={`text-sm font-bold px-2 py-0.5 rounded-full ${selected.length>=4&&selected.length<=6?'bg-indigo-100 text-indigo-600':'bg-gray-100 text-gray-400'}`}>
+            {selected.length}명 선택
+          </span>
+        </div>
+        {selected.length>=4&&(
+          <div className="bg-indigo-50 rounded-xl p-3 mb-3 text-sm text-indigo-700">
+            {selected.length}명 → {gamesCount(selected.length)}경기 · 각자 {playsEach(selected.length)}게임
+            {selected.length===6?' (3v3)':' (2v2)'}
+          </div>
+        )}
+        <div className="grid grid-cols-3 gap-2 mb-3">
+          {state.players.map(p=>(
+            <button key={p.id} onClick={()=>toggle(p.id)}
+              className={`py-2.5 px-2 rounded-xl text-sm font-semibold border-2 transition-all ${selected.includes(p.id)?'border-indigo-500 bg-indigo-50 text-indigo-700':'border-gray-200 text-gray-600 bg-white'}`}>
+              {selected.includes(p.id)&&<span className="mr-1 text-xs">{selected.indexOf(p.id)+1}</span>}
+              {p.name}
             </button>
           ))}
         </div>
-      )}
-
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-4">
-        <div className="px-4 py-3 bg-indigo-50 border-b border-indigo-100">
-          <h2 className="font-bold text-indigo-800">{group.name} 개인 순위</h2>
-          <p className="text-xs text-indigo-500 mt-0.5">
-            {group.games.filter(g=>g.winner).length}/{group.games.length}경기 완료
-          </p>
-        </div>
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-gray-500 text-xs">
-            <tr>
-              <th className="px-3 py-2 text-left">순위</th>
-              <th className="px-3 py-2 text-left">이름</th>
-              <th className="px-3 py-2 text-center">경기</th>
-              <th className="px-3 py-2 text-center text-indigo-600">승</th>
-              <th className="px-3 py-2 text-center text-rose-500">패</th>
-            </tr>
-          </thead>
-          <tbody>
-            {standings.map((row,idx)=>(
-              <tr key={row.player.id} className={`border-t ${idx===0?'bg-yellow-50':idx===1?'bg-gray-50':idx===2?'bg-orange-50':''}`}>
-                <td className="px-3 py-3 text-center text-lg">{medals[idx]||`${idx+1}`}</td>
-                <td className="px-3 py-3 font-semibold">{row.player.name}</td>
-                <td className="px-3 py-3 text-center text-gray-500">{row.played}</td>
-                <td className="px-3 py-3 text-center font-bold text-indigo-600">{row.wins}</td>
-                <td className="px-3 py-3 text-center text-rose-500">{row.losses}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {allDone && (
-        <div className="bg-white rounded-2xl shadow-sm p-4 text-center">
-          <div className="text-4xl mb-2">🏆</div>
-          <div className="font-black text-xl text-gray-800">{standings[0]?.player.name} 우승!</div>
-          <button onClick={()=>setShowConfetti(true)} className="mt-3 bg-yellow-400 text-white px-6 py-2 rounded-full font-bold text-sm hover:bg-yellow-500">
-            🎉 축하!
+        <div className="flex gap-2">
+          <input className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:border-indigo-400 outline-none"
+            placeholder="조 이름 (선택)" value={groupName} onChange={e=>setGroupName(e.target.value)}/>
+          <button onClick={createGroup} disabled={selected.length<4||selected.length>6}
+            className={`px-5 py-2 rounded-xl font-bold text-sm ${selected.length>=4&&selected.length<=6?'bg-indigo-500 text-white':'bg-gray-200 text-gray-400'}`}>
+            생성
           </button>
         </div>
+      </div>
+    </div>
+  );
+
+  return(
+    <div className="content max-w-lg mx-auto p-4">
+      {showOcr&&(
+        <OcrPanel mode="names"
+          onNames={(names)=>{
+            dispatch({type:'ADD_PLAYERS_BULK',names});
+            setShowOcr(false);
+          }}
+          onClose={()=>setShowOcr(false)}/>
+      )}
+
+      <div className="bg-white rounded-2xl shadow-sm p-4 mb-4">
+        <div className="flex justify-between items-center mb-3">
+          <h2 className="font-bold text-gray-800">선수 목록 <span className="text-indigo-500">{state.players.length}명</span></h2>
+          <button onClick={()=>setShowOcr(true)}
+            className="text-xs bg-amber-100 text-amber-700 px-3 py-1.5 rounded-full font-medium">
+            📷 사진으로 추가
+          </button>
+        </div>
+
+        {state.players.length===0&&(
+          <div className="py-6 text-center text-gray-400 text-sm">
+            선수를 추가하거나 대진표 사진으로 한번에 등록하세요
+          </div>
+        )}
+
+        {state.players.map((p,i)=>(
+          <div key={p.id} className="flex items-center gap-2 py-2 border-b border-gray-50 last:border-0">
+            <span className="text-xs text-gray-300 w-5">{i+1}</span>
+            {editId===p.id?(
+              <>
+                <input autoFocus className="flex-1 border border-indigo-300 rounded-lg px-2 py-1 text-sm"
+                  value={editName} onChange={e=>setEditName(e.target.value)}
+                  onKeyDown={e=>{if(e.key==='Enter'){dispatch({type:'UPDATE_PLAYER',id:p.id,name:editName||p.name});setEditId(null);}if(e.key==='Escape')setEditId(null);}}/>
+                <button onClick={()=>{dispatch({type:'UPDATE_PLAYER',id:p.id,name:editName||p.name});setEditId(null);}} className="text-indigo-600 text-sm font-medium">저장</button>
+              </>
+            ):(
+              <>
+                <span className="flex-1 font-medium text-sm">{p.name}</span>
+                <button onClick={()=>{setEditId(p.id);setEditName(p.name);}} className="text-gray-300 hover:text-indigo-400 px-1">✏️</button>
+                <button onClick={()=>dispatch({type:'REMOVE_PLAYER',id:p.id})} className="text-gray-300 hover:text-red-400 px-1">🗑️</button>
+              </>
+            )}
+          </div>
+        ))}
+
+        <div className="flex gap-2 mt-3">
+          <input className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:border-indigo-400 outline-none"
+            placeholder="선수 이름 입력..." value={newName} onChange={e=>setNewName(e.target.value)}
+            onKeyDown={e=>e.key==='Enter'&&addPlayer()}/>
+          <button onClick={addPlayer} className="bg-indigo-500 text-white px-4 py-2 rounded-xl text-sm font-bold">추가</button>
+        </div>
+      </div>
+
+      {state.players.length>=4&&(
+        <button onClick={()=>setStep('compose')}
+          className="w-full py-3.5 bg-green-500 text-white rounded-2xl font-black text-base">
+          조 편성하기 →
+        </button>
       )}
     </div>
   );
 }
 
-// ── 앱 ──────────────────────────────────────────────────────
-function App() {
-  const [state, dispatch] = useReducer(reducer, null, loadState);
+// ─── 조 상세 화면 ────────────────────────────────────────
+function GroupScreen({state,dispatch}){
+  const {groupId,tab}=state.view;
+  const grp=state.groups.find(g=>g.id===groupId);
+  if(!grp) return null;
 
-  useEffect(()=>{
-    try { localStorage.setItem('bdm_v4', JSON.stringify(state)); } catch {}
-  }, [state]);
+  const playerMap={};
+  state.players.forEach(p=>{playerMap[p.id]=p.name;});
+  const grpPlayers=grp.playerIds.map(id=>state.players.find(p=>p.id===id)).filter(Boolean);
+  const standings=calcStandings(grpPlayers,grp.games);
+  const done=grp.games.filter(g=>g.winner).length;
+  const total=grp.games.length;
+  const isComplete=done===total&&total>0;
 
-  const tabs = [
-    { id:'setup',    icon:'⚙️',  label:'설정' },
-    { id:'games',    icon:'🏸',  label:'경기' },
-    { id:'standings',icon:'📊',  label:'순위' },
+  const [modalGame,setModalGame]=useState(null);
+  const [showOcr,setShowOcr]=useState(false);
+  const [ocrRef,setOcrRef]=useState('');
+  const [confetti,setConfetti]=useState(false);
+
+  const TABS=[
+    {id:'bracket',icon:'📋',label:'대진표'},
+    {id:'results',icon:'📝',label:'경기 결과'},
+    {id:'standings',icon:'🏆',label:'순위'},
   ];
 
-  const activeGroup = state.groups.find(g=>g.id===state.activeGroup);
-  const pendingGames = activeGroup?.games.filter(g=>!g.winner).length || 0;
+  return(
+    <div className="content max-w-lg mx-auto">
+      <Confetti show={confetti}/>
 
-  const renderScreen = () => {
-    switch(state.tab) {
-      case 'setup':     return <SetupScreen state={state} dispatch={dispatch} />;
-      case 'games':     return <GamesScreen state={state} dispatch={dispatch} />;
-      case 'standings': return <StandingsScreen state={state} />;
-      default:          return <SetupScreen state={state} dispatch={dispatch} />;
-    }
+      {/* 조 헤더 */}
+      <div className="bg-white border-b border-gray-100 px-4 pt-3 pb-0 no-print">
+        <div className="flex items-center justify-between mb-2">
+          <button onClick={()=>dispatch({type:'SET_VIEW',view:{screen:'dashboard'}})} className="text-indigo-500 font-medium">← 대시보드</button>
+          <div className="text-center">
+            <span className="font-black text-gray-800">{grp.name}</span>
+            <span className="ml-2 text-xs text-gray-400">{grp.playerIds.length}명 · {done}/{total}</span>
+          </div>
+          <div className="w-16"/>
+        </div>
+        {/* 탭 */}
+        <div className="flex">
+          {TABS.map(t=>(
+            <button key={t.id} onClick={()=>dispatch({type:'SET_GROUP_TAB',tab:t.id})}
+              className={`flex-1 flex items-center justify-center gap-1 py-2.5 text-sm font-semibold border-b-2 transition-all ${tab===t.id?'border-indigo-500 text-indigo-600':'border-transparent text-gray-400'}`}>
+              <span>{t.icon}</span><span>{t.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 대진표 */}
+      {tab==='bracket'&&(
+        <div className="p-4">
+          <div className="flex justify-between items-center mb-3">
+            <h3 className="font-bold text-gray-700">대진표</h3>
+            <button onClick={()=>dispatch({type:'SET_VIEW',view:{screen:'group',groupId,tab:'results',showOcr:true}})}
+              className="text-xs bg-amber-100 text-amber-700 px-3 py-1.5 rounded-full font-medium">
+              📷 결과 사진 입력
+            </button>
+          </div>
+
+          {/* 선수 명단 */}
+          <div className="bg-white rounded-2xl shadow-sm p-4 mb-4">
+            <p className="text-xs font-semibold text-gray-400 mb-2">참가 선수</p>
+            <div className="flex flex-wrap gap-2">
+              {grpPlayers.map((p,i)=>(
+                <span key={p.id} className="px-3 py-1 rounded-full text-sm font-semibold text-white" style={{backgroundColor:grp.color}}>
+                  {i+1}. {p.name}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* 경기 목록 */}
+          {grp.games.map(game=>{
+            const t1=game.team1.map(id=>playerMap[id]||'?').join(' + ');
+            const t2=game.team2.map(id=>playerMap[id]||'?').join(' + ');
+            const byeNames=game.bye.map(id=>playerMap[id]||'?');
+            return(
+              <div key={game.id} className="bg-white rounded-2xl shadow-sm p-4 mb-3">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-bold text-gray-400">경기 {game.no}</span>
+                  {game.winner&&<span className="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded-full">완료</span>}
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className={`flex-1 text-sm font-bold py-2 px-3 rounded-xl text-center ${game.winner===1?'bg-indigo-100 text-indigo-700':'bg-gray-50 text-gray-700'}`}>{t1}</div>
+                  <div className="text-center min-w-8">
+                    {game.winner?<span className="font-black text-gray-600">{game.score1}:{game.score2}</span>:<span className="text-gray-300 text-xs font-bold">VS</span>}
+                  </div>
+                  <div className={`flex-1 text-sm font-bold py-2 px-3 rounded-xl text-center ${game.winner===2?'bg-rose-100 text-rose-700':'bg-gray-50 text-gray-700'}`}>{t2}</div>
+                </div>
+                {byeNames.length>0&&<p className="text-xs text-gray-400 mt-1.5 text-center">💺 쉬는 선수: {byeNames.join(', ')}</p>}
+              </div>
+            );
+          })}
+          <button onClick={()=>window.print()} className="w-full py-2.5 border border-gray-200 rounded-xl text-sm text-gray-500 mt-2">
+            🖨️ 대진표 인쇄
+          </button>
+        </div>
+      )}
+
+      {/* 경기 결과 입력 */}
+      {tab==='results'&&(
+        <div className="p-4">
+          {showOcr&&(
+            <OcrPanel mode="result"
+              onText={t=>{setOcrRef(t);setShowOcr(false);}}
+              onClose={()=>setShowOcr(false)}/>
+          )}
+
+          <div className="flex justify-between items-center mb-3">
+            <h3 className="font-bold text-gray-700">경기 결과 입력</h3>
+            <button onClick={()=>setShowOcr(true)}
+              className="text-xs bg-amber-100 text-amber-700 px-3 py-1.5 rounded-full font-medium">
+              📷 사진으로 인식
+            </button>
+          </div>
+
+          {/* OCR 참고 텍스트 */}
+          {ocrRef&&(
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-3">
+              <div className="flex justify-between items-center mb-1">
+                <p className="text-xs font-semibold text-amber-700">📋 인식된 결과 참고</p>
+                <button onClick={()=>setOcrRef('')} className="text-amber-400 text-xs">닫기</button>
+              </div>
+              <p className="text-xs text-amber-800 font-mono whitespace-pre-wrap">{ocrRef.slice(0,300)}</p>
+            </div>
+          )}
+
+          {/* 진행바 */}
+          <div className="bg-white rounded-2xl shadow-sm p-3 mb-3">
+            <div className="flex justify-between text-sm mb-1.5">
+              <span className="font-medium text-gray-600">진행률</span>
+              <span className="font-bold text-indigo-600">{done}/{total}</span>
+            </div>
+            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-full rounded-full transition-all" style={{width:`${total?done/total*100:0}%`,backgroundColor:grp.color}}/>
+            </div>
+          </div>
+
+          {grp.games.map(game=>{
+            const t1=game.team1.map(id=>playerMap[id]||'?').join(' + ');
+            const t2=game.team2.map(id=>playerMap[id]||'?').join(' + ');
+            return(
+              <div key={game.id} onClick={()=>setModalGame(game)}
+                className={`bg-white rounded-2xl shadow-sm p-4 mb-3 cursor-pointer active:scale-98 transition-transform ${!game.winner?'border-l-4 border-orange-300':''}`}>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-bold text-gray-400">경기 {game.no}</span>
+                  {game.winner
+                    ?<span className="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded-full">✓ 완료</span>
+                    :<span className="text-xs bg-orange-100 text-orange-500 px-2 py-0.5 rounded-full">탭하여 입력</span>}
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className={`flex-1 text-sm font-bold py-2 px-3 rounded-xl text-center ${game.winner===1?'bg-indigo-100 text-indigo-700':'bg-gray-50 text-gray-600'}`}>{t1}</div>
+                  <div className="text-center min-w-12">
+                    {game.winner?<span className="font-black text-gray-700">{game.score1}:{game.score2}</span>:<span className="text-gray-200 font-bold">VS</span>}
+                  </div>
+                  <div className={`flex-1 text-sm font-bold py-2 px-3 rounded-xl text-center ${game.winner===2?'bg-rose-100 text-rose-700':'bg-gray-50 text-gray-600'}`}>{t2}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* 순위 */}
+      {tab==='standings'&&(
+        <div className="p-4">
+          {isComplete&&(
+            <div className="bg-gradient-to-r from-yellow-400 to-orange-400 rounded-2xl p-4 mb-4 text-white text-center">
+              <div className="text-3xl mb-1">🏆</div>
+              <div className="font-black text-xl">{standings[0]?.player.name} 우승!</div>
+              <button onClick={()=>setConfetti(true)} className="mt-2 bg-white/20 text-white px-4 py-1.5 rounded-full text-sm font-bold">
+                🎉 축하!
+              </button>
+            </div>
+          )}
+
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="px-4 py-3 border-b border-gray-100" style={{borderLeft:`4px solid ${grp.color}`}}>
+              <h3 className="font-bold text-gray-800">{grp.name} 개인 순위</h3>
+              <p className="text-xs text-gray-400 mt-0.5">
+                승수 기준 · {done}/{total}경기 완료
+              </p>
+            </div>
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 text-xs text-gray-500">
+                <tr>
+                  <th className="px-3 py-2 text-center">순위</th>
+                  <th className="px-3 py-2 text-left">이름</th>
+                  <th className="px-3 py-2 text-center">경기</th>
+                  <th className="px-3 py-2 text-center text-indigo-500">승</th>
+                  <th className="px-3 py-2 text-center text-rose-400">패</th>
+                  <th className="px-3 py-2 text-center text-gray-400">승률</th>
+                </tr>
+              </thead>
+              <tbody>
+                {standings.map((row,idx)=>{
+                  const rate=row.played?Math.round(row.wins/row.played*100):0;
+                  return(
+                    <tr key={row.player.id} className={`border-t ${idx===0?'bg-yellow-50':idx===1?'bg-gray-50':idx===2?'bg-orange-50':''}`}>
+                      <td className="px-3 py-3 text-center text-lg">{['🥇','🥈','🥉'][idx]||`${idx+1}`}</td>
+                      <td className="px-3 py-3 font-semibold">{row.player.name}</td>
+                      <td className="px-3 py-3 text-center text-gray-400">{row.played}</td>
+                      <td className="px-3 py-3 text-center font-bold text-indigo-600">{row.wins}</td>
+                      <td className="px-3 py-3 text-center text-rose-400">{row.losses}</td>
+                      <td className="px-3 py-3 text-center text-gray-400">{rate}%</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <button onClick={()=>window.print()} className="w-full py-2.5 border border-gray-200 rounded-xl text-sm text-gray-500 mt-3">
+            🖨️ 순위표 인쇄
+          </button>
+        </div>
+      )}
+
+      {modalGame&&(
+        <GameModal game={modalGame} playerMap={playerMap} groupId={grp.id} dispatch={dispatch} onClose={()=>setModalGame(null)}/>
+      )}
+    </div>
+  );
+}
+
+// ─── 앱 ─────────────────────────────────────────────────
+function App(){
+  const [state,dispatch]=useReducer(reducer,null,loadState);
+  useEffect(()=>{try{localStorage.setItem('bdm_v5',JSON.stringify(state));}catch{}}, [state]);
+
+  const screen=state.view?.screen||'dashboard';
+
+  const NAV=[
+    {id:'dashboard',icon:'🏠',label:'대시보드'},
+    {id:'setup',    icon:'⚙️', label:'설정'},
+  ];
+
+  const grp=screen==='group'?state.groups.find(g=>g.id===state.view?.groupId):null;
+  const pendingTotal=state.groups.reduce((a,g)=>a+g.games.filter(gm=>!gm.winner).length,0);
+
+  const renderScreen=()=>{
+    if(screen==='group') return <GroupScreen state={state} dispatch={dispatch}/>;
+    if(screen==='setup') return <SetupScreen state={state} dispatch={dispatch}/>;
+    return <Dashboard state={state} dispatch={dispatch}/>;
   };
 
-  return (
+  return(
     <div className="min-h-screen bg-gray-50">
+      {/* 헤더 */}
       <div className="bg-white border-b border-gray-100 sticky top-0 z-10 no-print">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
           <h1 className="font-black text-gray-800">🏸 배드민턴 조 리그</h1>
-          {activeGroup && <span className="text-xs text-gray-400">{activeGroup.name}</span>}
+          {state.groups.length>0&&(
+            <span className="text-xs text-gray-400">
+              {state.groups.length}개 조 · 대기 {pendingTotal}경기
+            </span>
+          )}
         </div>
       </div>
 
       {renderScreen()}
 
-      <div className="tab-bar no-print">
-        <div className="max-w-lg mx-auto flex">
-          {tabs.map(t=>(
-            <button key={t.id} onClick={()=>dispatch({type:'SET_TAB',tab:t.id})}
-              className={`flex-1 flex flex-col items-center py-3 gap-0.5 relative ${state.tab===t.id?'text-indigo-600':'text-gray-400'}`}>
-              <span className="text-xl leading-none">{t.icon}</span>
-              <span className="text-xs font-medium">{t.label}</span>
-              {t.id==='games' && pendingGames>0 && (
-                <span className="absolute top-2 right-1/4 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                  {pendingGames>9?'9+':pendingGames}
-                </span>
-              )}
-              {state.tab===t.id && <span className="absolute top-0 left-1/4 right-1/4 h-0.5 bg-indigo-500 rounded-full"/>}
-            </button>
-          ))}
+      {/* 탭 바 (그룹 상세에서는 숨김) */}
+      {screen!=='group'&&(
+        <div className="tab-bar no-print">
+          <div className="max-w-lg mx-auto flex">
+            {NAV.map(t=>(
+              <button key={t.id} onClick={()=>dispatch({type:'SET_VIEW',view:{screen:t.id}})}
+                className={`flex-1 flex flex-col items-center py-3 gap-0.5 relative ${screen===t.id?'text-indigo-600':'text-gray-400'}`}>
+                <span className="text-xl leading-none">{t.icon}</span>
+                <span className="text-xs font-semibold">{t.label}</span>
+                {t.id==='dashboard'&&pendingTotal>0&&(
+                  <span className="absolute top-2 right-1/4 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center leading-none">
+                    {pendingTotal>9?'9+':pendingTotal}
+                  </span>
+                )}
+                {screen===t.id&&<span className="absolute top-0 left-1/4 right-1/4 h-0.5 bg-indigo-500 rounded-full"/>}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 </script>
 </body>
 </html>
