@@ -1,198 +1,303 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
-  <title>🏸 배드민턴 조 리그</title>
-  <style>
-    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0;}
-    body{font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR',sans-serif;background:#f1f5f9;min-height:100vh;}
-    button{cursor:pointer;border:none;background:none;font-family:inherit;}
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<title>🏸 배드민턴 조 리그</title>
+<style>
+:root{
+  --bg:#0f0f1a;
+  --surface:#1a1a2e;
+  --surface2:#16213e;
+  --card:#1e2140;
+  --card2:#252847;
+  --border:#2d3060;
+  --gold:#f5c842;
+  --gold2:#e8a000;
+  --accent:#7c6fcd;
+  --accent2:#5a4fcf;
+  --pink:#e040a0;
+  --green:#00d68f;
+  --red:#ff4757;
+  --text:#f0f0ff;
+  --text2:#a0a8d0;
+  --text3:#5a6080;
+  --radius:18px;
+  --radius-sm:12px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR',sans-serif;}
+button,input,textarea{font-family:inherit;}
+button{cursor:pointer;border:none;background:none;color:inherit;}
+input,textarea{color:var(--text);}
+input::placeholder,textarea::placeholder{color:var(--text3);}
 
-    /* 레이아웃 */
-    .page{max-width:480px;margin:0 auto;padding:12px 12px calc(16px + env(safe-area-inset-bottom));}
-    .header{position:sticky;top:0;z-index:100;background:#fff;border-bottom:1px solid #e2e8f0;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;}
-    .header-title{font-size:16px;font-weight:900;color:#1e293b;}
-    .badge-red{background:#ef4444;color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;}
+/* ── 스크롤바 ── */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px;}
 
-    /* 카드 */
-    .card{background:#fff;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:12px;overflow:hidden;}
-    .card-body{padding:14px 16px;}
+/* ── 레이아웃 ── */
+.page{max-width:480px;margin:0 auto;padding:0 14px calc(24px + env(safe-area-inset-bottom));}
 
-    /* 버튼 공통 */
-    .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;font-weight:700;border-radius:12px;cursor:pointer;transition:opacity .15s,transform .1s;border:none;}
-    .btn:active{opacity:.8;transform:scale(.97);}
-    .btn-primary{background:#6366f1;color:#fff;padding:12px 20px;font-size:15px;}
-    .btn-green{background:#22c55e;color:#fff;padding:14px;font-size:17px;width:100%;border-radius:14px;}
-    .btn-ghost{background:#f1f5f9;color:#475569;padding:10px 16px;font-size:13px;}
-    .btn-danger{background:#fee2e2;color:#dc2626;padding:10px 16px;font-size:13px;}
-    .btn-outline{background:#fff;border:2px solid #e2e8f0;color:#475569;padding:10px 16px;font-size:13px;}
-    .btn-block{width:100%;padding:14px;font-size:16px;border-radius:14px;}
-    .btn-sm{padding:7px 14px;font-size:12px;border-radius:10px;}
+/* ── 헤더 ── */
+.app-header{
+  position:sticky;top:0;z-index:100;
+  background:linear-gradient(135deg,#0d0d20,#1a1040);
+  border-bottom:1px solid var(--border);
+  padding:14px 16px calc(14px + env(safe-area-inset-top,0px));
+  padding-top:calc(14px + env(safe-area-inset-top,0px));
+  display:flex;align-items:center;justify-content:space-between;
+  backdrop-filter:blur(20px);
+}
+.header-logo{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:900;letter-spacing:-.3px;}
+.header-logo span{background:linear-gradient(135deg,#f5c842,#e040a0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.header-actions{display:flex;align-items:center;gap:8px;}
+.icon-btn{width:36px;height:36px;border-radius:10px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text2);}
+.icon-btn:active{opacity:.7;}
+.badge-pill{background:var(--red);color:#fff;font-size:11px;font-weight:800;padding:3px 9px;border-radius:99px;}
 
-    /* 조 탭 */
-    .grp-tabs{display:flex;gap:8px;overflow-x:auto;padding:10px 12px;scrollbar-width:none;}
-    .grp-tabs::-webkit-scrollbar{display:none;}
-    .grp-tab{flex-shrink:0;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:700;border:2px solid #e2e8f0;background:#fff;color:#64748b;white-space:nowrap;}
-    .grp-tab.active{color:#fff;border-color:transparent;}
+/* ── 카드 ── */
+.card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);margin-bottom:12px;overflow:hidden;}
+.card-pad{padding:18px;}
+.card-sep{height:1px;background:var(--border);}
 
-    /* 3개 액션 버튼 */
-    .action-grid{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #f1f5f9;}
-    .action-btn{display:flex;flex-direction:column;align-items:center;padding:14px 8px;gap:5px;background:#fff;border:none;cursor:pointer;font-family:inherit;}
-    .action-btn:active{background:#f8fafc;}
-    .action-btn .icon{font-size:26px;line-height:1;}
-    .action-btn .label{font-size:12px;font-weight:700;color:#475569;}
+/* ── 그라디언트 배너 ── */
+.banner-grad{
+  background:linear-gradient(135deg,#1a0533,#0d1a40);
+  border-radius:var(--radius);border:1px solid var(--border);
+  padding:20px;margin-bottom:14px;position:relative;overflow:hidden;
+}
+.banner-grad::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 80% 20%,rgba(124,111,205,.3),transparent 60%),
+             radial-gradient(ellipse at 20% 80%,rgba(224,64,160,.2),transparent 60%);
+}
+.banner-grad > *{position:relative;}
 
-    /* 입력방법 2버튼 */
-    .method-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
-    .method-btn{display:flex;align-items:center;gap:10px;padding:14px;border-radius:14px;border:2px solid;cursor:pointer;background:none;font-family:inherit;text-align:left;}
-    .method-btn.photo{border-color:#fbbf24;background:#fffbeb;}
-    .method-btn.manual{border-color:#a5b4fc;background:#eef2ff;}
-    .method-btn .m-icon{font-size:26px;flex-shrink:0;}
-    .method-btn .m-title{font-size:13px;font-weight:700;}
-    .method-btn .m-sub{font-size:11px;margin-top:2px;}
-    .method-btn.photo .m-title{color:#92400e;}
-    .method-btn.photo .m-sub{color:#b45309;}
-    .method-btn.manual .m-title{color:#3730a3;}
-    .method-btn.manual .m-sub{color:#6366f1;}
+/* ── 통계 ── */
+.stat-num{font-size:32px;font-weight:900;line-height:1;}
+.stat-label{font-size:12px;color:var(--text2);margin-top:2px;}
 
-    /* 테이블 */
-    table{width:100%;border-collapse:collapse;font-size:13px;}
-    thead td,thead th{background:#f8fafc;color:#94a3b8;font-size:11px;font-weight:700;padding:8px 12px;text-align:center;}
-    thead th:nth-child(2){text-align:left;}
-    tbody tr{border-top:1px solid #f1f5f9;}
-    tbody td{padding:11px 12px;text-align:center;}
-    tbody td:nth-child(2){text-align:left;font-weight:700;color:#1e293b;}
-    .rank-gold{background:#fefce8;}
-    .rank-silver{background:#f8fafc;}
-    .rank-bronze{background:#fff7ed;}
+/* ── 진행바 ── */
+.prog{height:5px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden;margin-top:10px;}
+.prog-fill{height:100%;border-radius:99px;transition:width .6s cubic-bezier(.4,0,.2,1);}
 
-    /* 경기 카드 */
-    .match-card{background:#fff;border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.07);}
-    .match-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
-    .match-no{font-size:11px;font-weight:700;background:#f1f5f9;color:#64748b;padding:3px 8px;border-radius:20px;}
-    .match-status-done{font-size:11px;font-weight:700;background:#dcfce7;color:#16a34a;padding:3px 8px;border-radius:20px;}
-    .match-status-todo{font-size:11px;font-weight:700;background:#ffedd5;color:#ea580c;padding:3px 8px;border-radius:20px;}
-    .match-row{display:flex;align-items:center;gap:8px;}
-    .match-team{flex:1;padding:10px 8px;border-radius:10px;font-size:13px;font-weight:700;text-align:center;background:#f8fafc;color:#334155;}
-    .match-team.win-left{background:#eef2ff;color:#4338ca;}
-    .match-team.win-right{background:#fff1f2;color:#be123c;}
-    .match-score{min-width:48px;text-align:center;font-size:17px;font-weight:900;color:#1e293b;}
-    .match-score.vs{font-size:12px;color:#cbd5e1;font-weight:700;}
-    .match-bye{font-size:11px;color:#94a3b8;text-align:center;margin-top:8px;}
-    .match-card.done{border-left:4px solid #22c55e;}
-    .match-card.todo{border-left:4px solid #fb923c;cursor:pointer;}
-    .match-card.todo:active{transform:scale(.98);}
+/* ── 조 탭 ── */
+.grp-scroll{display:flex;gap:8px;overflow-x:auto;padding:12px 14px;scrollbar-width:none;}
+.grp-scroll::-webkit-scrollbar{display:none;}
+.grp-chip{
+  flex-shrink:0;padding:8px 18px;border-radius:99px;
+  font-size:13px;font-weight:700;white-space:nowrap;
+  background:var(--card);border:1px solid var(--border);color:var(--text2);
+  transition:all .2s;
+}
+.grp-chip.on{color:#fff;border-color:transparent;box-shadow:0 4px 16px rgba(0,0,0,.4);}
+.grp-chip:active{transform:scale(.95);}
+.grp-chip-add{border-style:dashed;color:var(--accent);border-color:var(--accent);}
 
-    /* 진행바 */
-    .prog-wrap{background:#f1f5f9;border-radius:99px;height:8px;overflow:hidden;margin-top:6px;}
-    .prog-bar{height:100%;border-radius:99px;transition:width .5s;}
+/* ── 선수 태그 ── */
+.p-tag{padding:5px 12px;border-radius:99px;font-size:12px;font-weight:700;display:inline-block;margin:3px;}
 
-    /* 모달 */
-    .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:flex-end;justify-content:center;}
-    .modal-box{background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:20px 20px calc(28px + env(safe-area-inset-bottom));max-height:88vh;overflow-y:auto;animation:slideUp .2s ease-out;}
-    @keyframes slideUp{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
-    .modal-title{font-size:17px;font-weight:900;color:#1e293b;margin-bottom:4px;}
-    .modal-close{font-size:26px;color:#cbd5e1;line-height:1;background:none;border:none;cursor:pointer;}
+/* ── 액션 버튼 3개 ── */
+.action-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:4px 0 6px;}
+.action-btn{
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:16px 8px;
+  transition:all .18s;font-family:inherit;
+}
+.action-btn:active{transform:scale(.95);opacity:.8;}
+.action-btn .a-icon{font-size:28px;line-height:1;}
+.action-btn .a-label{font-size:12px;font-weight:700;color:var(--text2);}
+.action-btn.primary-action{background:linear-gradient(135deg,var(--accent2),var(--accent));border-color:transparent;}
+.action-btn.primary-action .a-label{color:#fff;}
 
-    /* 승팀 선택 */
-    .winner-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
-    .winner-btn{padding:16px 10px;border-radius:14px;border:2px solid #e2e8f0;text-align:center;cursor:pointer;background:#fff;font-family:inherit;}
-    .winner-btn.sel-left{border-color:#6366f1;background:#eef2ff;}
-    .winner-btn.sel-right{border-color:#f43f5e;background:#fff1f2;}
-    .winner-btn .team-label{font-size:11px;color:#94a3b8;margin-bottom:4px;}
-    .winner-btn .team-name{font-size:13px;font-weight:700;color:#334155;}
-    .winner-btn.sel-left .team-name{color:#4338ca;}
-    .winner-btn.sel-right .team-name{color:#be123c;}
-    .winner-btn .win-badge{font-size:11px;margin-top:6px;}
+/* ── 입력 방법 2버튼 ── */
+.method-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.method-card{
+  display:flex;align-items:center;gap:12px;padding:14px;
+  border-radius:var(--radius-sm);border:1px solid;cursor:pointer;
+  background:none;font-family:inherit;text-align:left;transition:all .18s;
+}
+.method-card:active{transform:scale(.97);}
+.method-card.photo{border-color:#f5c84260;background:linear-gradient(135deg,rgba(245,200,66,.07),rgba(228,160,0,.03));}
+.method-card.manual{border-color:#7c6fcd60;background:linear-gradient(135deg,rgba(124,111,205,.07),rgba(90,79,207,.03));}
+.method-card .mc-icon{font-size:26px;flex-shrink:0;}
+.method-card .mc-title{font-size:13px;font-weight:700;color:var(--text);}
+.method-card .mc-sub{font-size:11px;color:var(--text2);margin-top:2px;}
 
-    /* 점수입력 */
-    .score-row{display:flex;align-items:flex-end;gap:12px;margin-bottom:18px;}
-    .score-input-wrap{flex:1;text-align:center;}
-    .score-label{font-size:11px;color:#94a3b8;margin-bottom:4px;}
-    .score-input{width:100%;border:2px solid #e2e8f0;border-radius:12px;padding:12px;text-align:center;font-size:30px;font-weight:900;outline:none;font-family:inherit;color:#1e293b;}
-    .score-input:focus{border-color:#6366f1;}
-    .score-sep{font-size:22px;font-weight:900;color:#e2e8f0;padding-bottom:14px;}
+/* ── 경기 카드 ── */
+.match-card{
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:14px;margin-bottom:8px;
+}
+.match-card.clickable{cursor:pointer;transition:all .18s;}
+.match-card.clickable:active{transform:scale(.98);}
+.match-card.done-card{border-left:3px solid var(--green);}
+.match-card.todo-card{border-left:3px solid var(--gold);}
+.match-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.match-no-badge{font-size:11px;font-weight:700;background:var(--card);color:var(--text2);padding:3px 10px;border-radius:99px;}
+.status-done{font-size:11px;font-weight:700;background:rgba(0,214,143,.12);color:var(--green);padding:3px 10px;border-radius:99px;}
+.status-todo{font-size:11px;font-weight:700;background:rgba(245,200,66,.12);color:var(--gold);padding:3px 10px;border-radius:99px;}
+.match-teams{display:flex;align-items:center;gap:8px;}
+.team-box{flex:1;padding:10px 8px;border-radius:10px;text-align:center;font-size:13px;font-weight:700;background:var(--card);color:var(--text2);}
+.team-box.win{background:linear-gradient(135deg,rgba(124,111,205,.2),rgba(90,79,207,.1));color:#b8b0ff;border:1px solid rgba(124,111,205,.3);}
+.team-box.win-r{background:linear-gradient(135deg,rgba(224,64,160,.2),rgba(255,71,87,.1));color:#ff9ec8;border:1px solid rgba(224,64,160,.3);}
+.vs-score{min-width:50px;text-align:center;font-size:18px;font-weight:900;color:var(--text);}
+.vs-txt{font-size:12px;color:var(--text3);font-weight:700;}
+.match-bye{font-size:11px;color:var(--text3);text-align:center;margin-top:8px;}
 
-    /* 선수 태그 */
-    .player-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
-    .player-tag{padding:5px 12px;border-radius:99px;font-size:12px;font-weight:700;color:#fff;}
+/* ── 순위표 ── */
+.rank-table{width:100%;border-collapse:collapse;}
+.rank-table th{font-size:11px;font-weight:700;color:var(--text3);padding:8px 10px;text-align:center;background:var(--surface);}
+.rank-table th:nth-child(2){text-align:left;}
+.rank-table td{padding:12px 10px;text-align:center;border-top:1px solid rgba(255,255,255,.04);}
+.rank-table td:nth-child(2){text-align:left;font-weight:700;color:var(--text);}
+.rank-1{background:linear-gradient(90deg,rgba(245,200,66,.08),transparent);}
+.rank-2{background:linear-gradient(90deg,rgba(160,168,208,.05),transparent);}
+.rank-3{background:linear-gradient(90deg,rgba(228,160,0,.06),transparent);}
+.pts-cell{font-size:17px;font-weight:900;color:var(--gold);}
+.win-cell{font-weight:700;color:#7c6fcd;}
+.loss-cell{color:var(--red);}
 
-    /* OCR 진행 */
-    .ocr-prog{height:10px;background:#e2e8f0;border-radius:99px;overflow:hidden;margin-top:8px;}
-    .ocr-bar{height:100%;background:#6366f1;border-radius:99px;transition:width .3s;}
-    .name-chip{display:inline-block;padding:6px 14px;border-radius:99px;font-size:13px;font-weight:700;border:2px solid;cursor:pointer;margin:4px;}
-    .name-chip.on{border-color:#6366f1;background:#eef2ff;color:#4338ca;}
-    .name-chip.off{border-color:#e2e8f0;background:#f8fafc;color:#94a3b8;text-decoration:line-through;}
+/* ── 결과 종합 ── */
+.result-row{display:flex;align-items:center;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.result-row:last-child{border-bottom:none;}
+.r-no{font-size:11px;color:var(--text3);width:38px;flex-shrink:0;}
+.r-t1,.r-t2{flex:1;font-size:12px;font-weight:700;color:var(--text2);}
+.r-t1{text-align:right;}
+.r-t2{text-align:left;}
+.r-t1.w{color:#b8b0ff;}
+.r-t2.w{color:#ff9ec8;}
+.r-score{min-width:54px;text-align:center;font-size:15px;font-weight:900;color:var(--text);padding:0 6px;}
 
-    /* 전체현황 배너 */
-    .banner{border-radius:16px;padding:16px;margin-bottom:12px;color:#fff;}
-    .banner-sub{font-size:12px;opacity:.8;margin-bottom:2px;}
-    .banner-main{font-size:20px;font-weight:900;}
+/* ── 우승 배너 ── */
+.champ-card{
+  background:linear-gradient(135deg,#2a1500,#1a0030);
+  border:1px solid rgba(245,200,66,.3);border-radius:var(--radius);
+  padding:24px;text-align:center;margin-bottom:14px;position:relative;overflow:hidden;
+}
+.champ-card::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 0%,rgba(245,200,66,.2),transparent 60%);
+}
+.champ-card>*{position:relative;}
+.champ-name{font-size:28px;font-weight:900;background:linear-gradient(135deg,#f5c842,#ff9800);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
 
-    /* 빠른이동 */
-    .quick-btns{display:flex;flex-wrap:wrap;gap:8px;}
-    .quick-btn{padding:7px 14px;border-radius:10px;border:2px solid #e2e8f0;background:#f8fafc;font-size:12px;font-weight:700;color:#475569;}
+/* ── 순위 미리보기 ── */
+.rank-preview{display:flex;gap:12px;padding:12px 18px;background:rgba(255,255,255,.03);border-top:1px solid var(--border);}
+.rp-item{display:flex;align-items:center;gap:7px;}
+.rp-name{font-size:12px;font-weight:800;}
+.rp-pts{font-size:11px;color:var(--text3);}
 
-    /* 순위 미리보기 */
-    .rank-preview{display:flex;gap:14px;padding:12px 16px;background:#f8fafc;border-top:1px solid #f1f5f9;}
-    .rank-item{display:flex;align-items:center;gap:6px;}
-    .rank-item .rname{font-size:12px;font-weight:800;color:#1e293b;}
-    .rank-item .rpts{font-size:11px;color:#94a3b8;}
+/* ── 범용 버튼 ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:700;border-radius:var(--radius-sm);cursor:pointer;transition:all .18s;border:none;font-family:inherit;}
+.btn:active{transform:scale(.96);}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1000;padding:14px;font-size:16px;width:100%;border-radius:14px;}
+.btn-accent{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;padding:14px;font-size:15px;width:100%;border-radius:14px;}
+.btn-ghost{background:var(--card2);color:var(--text2);padding:10px 18px;font-size:13px;border:1px solid var(--border);}
+.btn-red{background:rgba(255,71,87,.15);color:var(--red);padding:10px 18px;font-size:13px;border:1px solid rgba(255,71,87,.3);}
+.btn-outline{background:transparent;color:var(--text2);padding:10px 18px;font-size:13px;border:1px solid var(--border);}
+.btn-block{width:100%;padding:14px;border-radius:14px;}
+.btn-sm{padding:7px 14px;font-size:12px;border-radius:10px;}
 
-    /* 우승 배너 */
-    .champ-banner{background:linear-gradient(135deg,#f59e0b,#ef4444);border-radius:16px;padding:20px;text-align:center;color:#fff;margin-bottom:12px;}
-    .champ-name{font-size:24px;font-weight:900;margin:4px 0;}
+/* ── 입력 ── */
+.inp{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:13px 16px;font-size:15px;width:100%;outline:none;color:var(--text);transition:border-color .2s;}
+.inp:focus{border-color:var(--accent);}
+.inp-label{font-size:12px;font-weight:700;color:var(--text3);margin-bottom:7px;display:block;}
+.inp-row{display:flex;gap:8px;}
+.score-inp{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;font-size:34px;font-weight:900;text-align:center;width:100%;outline:none;color:var(--text);}
+.score-inp:focus{border-color:var(--accent);}
 
-    /* 결과 종합 행 */
-    .result-row{display:flex;align-items:center;padding:10px 16px;border-bottom:1px solid #f1f5f9;}
-    .result-row:last-child{border-bottom:none;}
-    .result-no{font-size:11px;color:#cbd5e1;width:36px;flex-shrink:0;}
-    .result-t1,.result-t2{flex:1;font-size:12px;font-weight:700;}
-    .result-t1{text-align:right;}
-    .result-t2{text-align:left;}
-    .result-t1.winner{color:#4338ca;}
-    .result-t2.winner{color:#be123c;}
-    .result-score{min-width:52px;text-align:center;font-size:14px;font-weight:900;color:#1e293b;padding:0 6px;}
+/* ── 모달 ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);}
+.modal{background:linear-gradient(180deg,#1e2140,#161830);border-radius:24px 24px 0 0;border-top:1px solid var(--border);width:100%;max-width:480px;padding:20px 20px calc(32px + env(safe-area-inset-bottom));max-height:88vh;overflow-y:auto;animation:slideUp .22s cubic-bezier(.4,0,.2,1);}
+@keyframes slideUp{from{transform:translateY(50px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:99px;margin:0 auto 18px;}
+.modal-title{font-size:18px;font-weight:900;color:var(--text);margin-bottom:4px;}
+.modal-close{font-size:24px;color:var(--text3);line-height:1;}
 
-    /* 입력폼 */
-    .form-input{width:100%;border:2px solid #e2e8f0;border-radius:12px;padding:12px 16px;font-size:15px;font-family:inherit;outline:none;color:#1e293b;}
-    .form-input:focus{border-color:#6366f1;}
-    .form-label{font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;display:block;}
+/* ── 승팀 선택 ── */
+.winner-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.winner-btn{padding:18px 10px;border-radius:var(--radius-sm);border:1px solid var(--border);text-align:center;cursor:pointer;background:var(--card2);font-family:inherit;transition:all .18s;}
+.winner-btn:active{transform:scale(.97);}
+.winner-btn.sel1{border-color:var(--accent);background:rgba(124,111,205,.12);}
+.winner-btn.sel2{border-color:var(--pink);background:rgba(224,64,160,.12);}
+.wt-label{font-size:11px;color:var(--text3);margin-bottom:5px;}
+.wt-name{font-size:13px;font-weight:700;color:var(--text);}
+.winner-btn.sel1 .wt-name{color:#b8b0ff;}
+.winner-btn.sel2 .wt-name{color:#ff9ec8;}
+.win-badge{font-size:13px;margin-top:8px;}
 
-    /* 선수 목록 */
-    .player-row{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid #f8fafc;}
-    .player-row:last-child{border-bottom:none;}
-    .player-num{font-size:12px;color:#cbd5e1;width:20px;text-align:center;}
-    .player-name{flex:1;font-size:14px;font-weight:600;color:#1e293b;}
-    .btn-icon{background:none;border:none;cursor:pointer;font-size:16px;padding:4px 6px;color:#cbd5e1;}
-    .btn-icon:hover{color:#94a3b8;}
+/* ── OCR ── */
+.ocr-prog{height:8px;background:var(--card2);border-radius:99px;overflow:hidden;margin-top:10px;}
+.ocr-bar{height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));border-radius:99px;transition:width .3s;}
+.name-chip{display:inline-block;padding:7px 16px;border-radius:99px;font-size:13px;font-weight:700;border:1px solid;cursor:pointer;margin:4px;transition:all .15s;}
+.name-chip.on{border-color:var(--accent);background:rgba(124,111,205,.15);color:#b8b0ff;}
+.name-chip.off{border-color:var(--border);background:transparent;color:var(--text3);text-decoration:line-through;}
+.ocr-ref{background:rgba(245,200,66,.07);border:1px solid rgba(245,200,66,.2);border-radius:var(--radius-sm);padding:12px;margin-bottom:12px;}
 
-    /* 정보 박스 */
-    .info-box{background:#eef2ff;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:700;color:#4338ca;margin-bottom:12px;}
-    .warn-box{background:#fff7ed;border-radius:10px;padding:10px 14px;font-size:13px;color:#c2410c;margin-bottom:12px;}
-    .ocr-ref-box{background:#fffbeb;border:1px solid #fcd34d;border-radius:12px;padding:12px;margin-bottom:12px;}
+/* ── 알림 박스 ── */
+.info-box{background:rgba(124,111,205,.1);border:1px solid rgba(124,111,205,.25);border-radius:10px;padding:11px 14px;font-size:13px;font-weight:700;color:#b8b0ff;margin-bottom:12px;}
+.warn-box{background:rgba(255,71,87,.08);border:1px solid rgba(255,71,87,.2);border-radius:10px;padding:11px 14px;font-size:13px;color:var(--red);margin-bottom:12px;}
 
-    /* 확인 다이얼로그 */
-    .dialog-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px;}
-    .dialog{background:#fff;border-radius:20px;padding:24px;width:100%;max-width:320px;text-align:center;}
-    .dialog h3{font-size:16px;font-weight:900;color:#1e293b;margin-bottom:6px;}
-    .dialog p{font-size:13px;color:#64748b;margin-bottom:18px;}
-    .dialog-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+/* ── 선수 행 ── */
+.p-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.p-row:last-child{border-bottom:none;}
+.p-num{font-size:12px;color:var(--text3);width:20px;text-align:center;}
+.p-name{flex:1;font-size:14px;font-weight:600;color:var(--text);}
+.p-del{font-size:16px;color:var(--text3);padding:4px 6px;}
+.p-del:hover{color:var(--red);}
 
-    /* 콘페티 */
-    .conf-box{position:fixed;inset:0;pointer-events:none;z-index:999;overflow:hidden;}
-    .conf-p{position:absolute;border-radius:2px;}
-    @keyframes fall{0%{transform:translateY(-10px) rotate(0);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
+/* ── 탭바 ── */
+.tab-bar{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  display:flex;position:sticky;top:60px;z-index:90;
+}
+.tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;padding:11px 4px;gap:3px;font-size:11px;font-weight:700;color:var(--text3);border-bottom:2px solid transparent;background:none;transition:all .2s;font-family:inherit;}
+.tab-btn.on{color:var(--gold);border-bottom-color:var(--gold);}
+.tab-btn .ti{font-size:18px;line-height:1;}
 
-    /* 탭바 */
-    .tab-bar{position:sticky;top:53px;z-index:90;background:#fff;border-bottom:1px solid #e2e8f0;display:flex;}
-    .tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 4px;gap:2px;font-size:12px;font-weight:700;color:#94a3b8;border-bottom:2px solid transparent;background:none;font-family:inherit;}
-    .tab-btn.active{color:#6366f1;border-bottom-color:#6366f1;}
-    .tab-btn .t-icon{font-size:18px;}
+/* ── 다이얼로그 ── */
+.dialog-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);}
+.dialog{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:24px;width:100%;max-width:320px;text-align:center;}
+.dialog h3{font-size:17px;font-weight:900;margin-bottom:8px;}
+.dialog p{font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.6;}
+.dialog-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 
-    @media print{.no-print{display:none!important;}body{background:#fff;}}
-  </style>
+/* ── 빠른 이동 ── */
+.quick-grid{display:flex;flex-wrap:wrap;gap:7px;}
+.quick-chip{padding:7px 14px;border-radius:99px;font-size:12px;font-weight:700;background:var(--card2);border:1px solid var(--border);color:var(--text2);}
+.quick-chip:active{transform:scale(.95);}
+
+/* ── 설정 패널 ── */
+.settings-panel{
+  position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);
+  display:flex;align-items:flex-start;justify-content:flex-end;
+}
+.settings-box{
+  background:var(--surface);border-left:1px solid var(--border);
+  width:260px;height:100%;padding:calc(env(safe-area-inset-top,14px) + 14px) 20px 24px;
+  display:flex;flex-direction:column;gap:0;
+  animation:slideRight .2s ease-out;
+}
+@keyframes slideRight{from{transform:translateX(100%)}to{transform:translateX(0)}}
+.settings-title{font-size:20px;font-weight:900;margin-bottom:24px;padding-top:8px;
+  background:linear-gradient(135deg,var(--gold),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.settings-item{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;}
+.settings-item:last-child{border-bottom:none;}
+.settings-item .s-icon{font-size:20px;width:32px;text-align:center;}
+.settings-item .s-label{font-size:14px;font-weight:700;color:var(--text);}
+.settings-item .s-sub{font-size:11px;color:var(--text3);margin-top:1px;}
+
+/* ── 콘페티 ── */
+.conf-box{position:fixed;inset:0;pointer-events:none;z-index:999;overflow:hidden;}
+.conf-p{position:absolute;border-radius:2px;}
+@keyframes fall{0%{transform:translateY(-10px) rotate(0);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
+
+@media print{.no-print{display:none!important;}html,body{background:#fff;color:#000;}}
+</style>
 </head>
 <body>
 <div id="root"></div>
@@ -201,40 +306,40 @@
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
 <script type="text/babel">
-const {useState,useEffect,useReducer,useRef} = React;
+const {useState,useEffect,useReducer,useRef}=React;
 
 /* ── 상수 ── */
-const MAX = 10;
-const COLORS = ['#6366f1','#8b5cf6','#ec4899','#f43f5e','#f97316','#eab308','#10b981','#0ea5e9','#14b8a6','#84cc16'];
-const uid = () => Math.random().toString(36).slice(2,9);
+const MAX=10;
+const COLORS=['#7c6fcd','#e040a0','#f97316','#f5c842','#00d68f','#0ea5e9','#8b5cf6','#ef4444','#14b8a6','#84cc16'];
+const uid=()=>Math.random().toString(36).slice(2,9);
 
 /* ── 대진표 생성 ── */
-function genSchedule(ids) {
-  const p=ids, n=p.length;
-  if(n===4) return [
+function genSchedule(ids){
+  const p=ids,n=p.length;
+  if(n===4)return[
     {team1:[p[0],p[1]],team2:[p[2],p[3]],bye:[]},
     {team1:[p[0],p[2]],team2:[p[1],p[3]],bye:[]},
     {team1:[p[0],p[3]],team2:[p[1],p[2]],bye:[]},
   ];
-  if(n===5) return [
+  if(n===5)return[
     {team1:[p[0],p[1]],team2:[p[2],p[3]],bye:[p[4]]},
     {team1:[p[0],p[2]],team2:[p[3],p[4]],bye:[p[1]]},
     {team1:[p[0],p[3]],team2:[p[1],p[4]],bye:[p[2]]},
     {team1:[p[0],p[4]],team2:[p[1],p[2]],bye:[p[3]]},
     {team1:[p[1],p[3]],team2:[p[2],p[4]],bye:[p[0]]},
   ];
-  if(n===6) return [
+  if(n===6)return[
     {team1:[p[0],p[1],p[2]],team2:[p[3],p[4],p[5]],bye:[]},
     {team1:[p[0],p[3],p[4]],team2:[p[1],p[2],p[5]],bye:[]},
     {team1:[p[0],p[1],p[5]],team2:[p[2],p[3],p[4]],bye:[]},
     {team1:[p[0],p[2],p[4]],team2:[p[1],p[3],p[5]],bye:[]},
     {team1:[p[0],p[2],p[3]],team2:[p[1],p[4],p[5]],bye:[]},
   ];
-  return [];
+  return[];
 }
 
-/* ── 개인순위 (점수 내림차순) ── */
-function calcRank(players, games) {
+/* ── 개인 순위 (점수 내림차순) ── */
+function calcRank(players,games){
   const s={};
   players.forEach(p=>{s[p.id]={player:p,wins:0,losses:0,played:0,pts:0};});
   games.filter(g=>g.winner).forEach(g=>{
@@ -249,13 +354,11 @@ async function doOCR(file,onProg){
   const r=await Tesseract.recognize(file,'kor+eng',{logger:m=>{if(m.status==='recognizing text')onProg(Math.round(m.progress*100));}});
   return r.data.text;
 }
-function extractNames(text){
-  return [...new Set(text.split(/[\s\n,|\-\/\\0-9\.()]+/).map(t=>t.trim()).filter(t=>/^[가-힣]{2,4}$/.test(t)))];
-}
+function extractNames(t){return[...new Set(t.split(/[\s\n,|\-\/\\0-9\.()]+/).map(s=>s.trim()).filter(s=>/^[가-힣]{2,4}$/.test(s)))];}
 
 /* ── 상태 ── */
 const INIT={groups:[],nav:'home',navData:null};
-function load(){try{const s=localStorage.getItem('bdm_v8');return s?JSON.parse(s):INIT;}catch{return INIT;}}
+function load(){try{const s=localStorage.getItem('bdm_v9');return s?JSON.parse(s):INIT;}catch{return INIT;}}
 function reducer(st,ac){
   switch(ac.type){
     case 'NAV':return{...st,nav:ac.to,navData:ac.data||null};
@@ -282,16 +385,62 @@ function reducer(st,ac){
 /* ── 콘페티 ── */
 function Confetti({on}){
   if(!on)return null;
-  const C=['#f6d365','#fda085','#84fab0','#8fd3f4','#a18cd1','#fbc2eb'];
+  const C=['#f5c842','#e040a0','#7c6fcd','#00d68f','#0ea5e9','#f97316'];
   return(
     <div className="conf-box">
-      {Array.from({length:70},(_,i)=>(
+      {Array.from({length:80},(_,i)=>(
         <div key={i} className="conf-p" style={{
-          left:`${Math.random()*100}%`,width:7+Math.random()*9,height:7+Math.random()*9,
+          left:`${Math.random()*100}%`,width:6+Math.random()*10,height:6+Math.random()*10,
           backgroundColor:C[i%C.length],borderRadius:Math.random()>.5?'50%':'2px',
           animation:`fall ${2+Math.random()*2}s ${Math.random()*2.5}s linear forwards`
         }}/>
       ))}
+    </div>
+  );
+}
+
+/* ── 설정 패널 ── */
+function SettingsPanel({st,dispatch,onClose}){
+  const [confirmReset,setConfirmReset]=useState(false);
+  return(
+    <div className="settings-panel" onClick={onClose}>
+      <div className="settings-box" onClick={e=>e.stopPropagation()}>
+        <div className="settings-title">⚙️ 설정</div>
+
+        <div className="settings-item" onClick={()=>dispatch({type:'NAV',to:'newgroup'})}>
+          <span className="s-icon">➕</span>
+          <div><div className="s-label">새 조 추가</div><div className="s-sub">{st.groups.length}/{MAX}개 조</div></div>
+        </div>
+
+        <div className="settings-item" onClick={()=>{ window.print(); onClose(); }}>
+          <span className="s-icon">🖨️</span>
+          <div><div className="s-label">인쇄</div><div className="s-sub">현재 화면 인쇄</div></div>
+        </div>
+
+        <div style={{flex:1}}/>
+
+        <div style={{borderTop:'1px solid rgba(255,255,255,.08)',paddingTop:16,marginTop:16}}>
+          <div className="settings-item" style={{paddingTop:0}} onClick={()=>setConfirmReset(true)}>
+            <span className="s-icon">🗑️</span>
+            <div><div className="s-label" style={{color:'#ff4757'}}>전체 초기화</div><div className="s-sub">모든 데이터 삭제</div></div>
+          </div>
+        </div>
+
+        <button className="btn btn-ghost" style={{width:'100%',marginTop:8}} onClick={onClose}>닫기</button>
+      </div>
+
+      {confirmReset&&(
+        <div className="dialog-bg" onClick={e=>e.stopPropagation()}>
+          <div className="dialog">
+            <h3>전체 초기화</h3>
+            <p>모든 조·선수·경기 데이터가<br/>삭제됩니다. 되돌릴 수 없습니다.</p>
+            <div className="dialog-btns">
+              <button className="btn btn-outline btn-block" onClick={()=>setConfirmReset(false)}>취소</button>
+              <button className="btn btn-red btn-block" onClick={()=>{dispatch({type:'RESET'});onClose();}}>초기화</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -306,66 +455,59 @@ function OcrModal({title,mode,onResult,onClose}){
   const handle=async e=>{
     const f=e.target.files?.[0];if(!f)return;
     setStage('ocring');setProg(0);
-    try{const text=await doOCR(f,setProg);setRaw(text);if(mode==='names')setNames(extractNames(text));setStage('done');}
+    try{const t=await doOCR(f,setProg);setRaw(t);if(mode==='names')setNames(extractNames(t));setStage('done');}
     catch{setStage('err');}
   };
   const toggle=n=>setNames(p=>p.includes(n)?p.filter(x=>x!==n):[...p,n]);
   return(
     <div className="modal-bg" onClick={onClose}>
-      <div className="modal-box" onClick={e=>e.stopPropagation()}>
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
+      <div className="modal" onClick={e=>e.stopPropagation()}>
+        <div className="modal-handle"/>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:18}}>
           <span className="modal-title">{title}</span>
-          <button className="modal-close" onClick={onClose}>×</button>
+          <button className="modal-close" onClick={onClose}>✕</button>
         </div>
         {stage==='idle'&&(
-          <div style={{textAlign:'center',padding:'24px 0'}}>
-            <div style={{fontSize:48,marginBottom:12}}>📸</div>
-            <p style={{color:'#64748b',fontSize:14,marginBottom:20,lineHeight:1.6}}>
-              {mode==='names'?'선수 이름이 적힌 대진표를 촬영하세요':'수기 결과지를 촬영하세요 (참고용)'}
-            </p>
-            <button className="btn btn-primary" onClick={()=>ref.current.click()}>📷 사진 촬영 / 갤러리</button>
+          <div style={{textAlign:'center',padding:'28px 0'}}>
+            <div style={{fontSize:56,marginBottom:14}}>📸</div>
+            <p style={{color:'#a0a8d0',fontSize:14,lineHeight:1.7,marginBottom:24}}>{mode==='names'?'선수 이름이 적힌 대진표를\n촬영하세요':'수기 결과지를 촬영하면\n참고용으로 표시됩니다'}</p>
+            <button className="btn btn-accent" style={{padding:'13px 32px',fontSize:15,width:'auto'}} onClick={()=>ref.current.click()}>📷 사진 촬영 / 갤러리</button>
             <input ref={ref} type="file" accept="image/*" capture="environment" style={{display:'none'}} onChange={handle}/>
           </div>
         )}
         {stage==='ocring'&&(
-          <div style={{textAlign:'center',padding:'32px 0'}}>
-            <div style={{fontSize:44,marginBottom:12}}>🔍</div>
-            <p style={{fontWeight:700,color:'#475569',marginBottom:12}}>인식 중... {prog}%</p>
+          <div style={{textAlign:'center',padding:'36px 0'}}>
+            <div style={{fontSize:50,marginBottom:14}}>🔍</div>
+            <p style={{fontWeight:700,color:'#a0a8d0',marginBottom:14}}>텍스트 인식 중... {prog}%</p>
             <div className="ocr-prog"><div className="ocr-bar" style={{width:`${prog}%`}}/></div>
           </div>
         )}
         {stage==='err'&&(
-          <div style={{textAlign:'center',padding:'24px 0'}}>
-            <div style={{fontSize:40,marginBottom:8}}>❌</div>
-            <p style={{color:'#94a3b8',marginBottom:12}}>인식 실패</p>
+          <div style={{textAlign:'center',padding:'28px 0'}}>
+            <div style={{fontSize:46,marginBottom:10}}>❌</div>
+            <p style={{color:'#a0a8d0',marginBottom:14}}>인식에 실패했습니다</p>
             <button className="btn btn-ghost" onClick={()=>setStage('idle')}>다시 시도</button>
           </div>
         )}
         {stage==='done'&&mode==='names'&&(
           <div>
-            <p style={{fontSize:13,color:'#64748b',marginBottom:10}}>인식된 이름 탭하여 선택 ({names.length}명)</p>
-            {names.length===0&&<p style={{color:'#f97316',fontSize:13,marginBottom:8}}>이름을 찾지 못했습니다. 아래 원문을 수정하세요.</p>}
-            <div style={{marginBottom:10}}>
-              {names.map(n=>(
-                <button key={n} className={`name-chip ${names.includes(n)?'on':'off'}`} onClick={()=>toggle(n)}>{n}</button>
-              ))}
-            </div>
+            <p style={{fontSize:13,color:'#a0a8d0',marginBottom:12}}>인식된 이름 탭하여 선택 ({names.length}명)</p>
+            {names.length===0&&<p style={{color:'#f97316',fontSize:13,marginBottom:10}}>이름을 찾지 못했습니다. 아래 원문을 수정하세요.</p>}
+            <div style={{marginBottom:12}}>{names.map(n=><button key={n} className={`name-chip ${names.includes(n)?'on':'off'}`} onClick={()=>toggle(n)}>{n}</button>)}</div>
             <textarea value={raw} onChange={e=>{setRaw(e.target.value);setNames(extractNames(e.target.value));}}
-              style={{width:'100%',height:80,fontSize:12,border:'1px solid #e2e8f0',borderRadius:10,padding:8,resize:'none',fontFamily:'monospace',marginBottom:12,outline:'none'}}/>
-            <button className="btn btn-primary btn-block" disabled={names.length<2}
-              style={{opacity:names.length<2?.4:1}}
-              onClick={()=>onResult(names)}>
+              style={{width:'100%',height:80,fontSize:12,background:'#1a1a2e',border:'1px solid #2d3060',borderRadius:10,padding:10,resize:'none',fontFamily:'monospace',color:'#a0a8d0',outline:'none',marginBottom:12}}/>
+            <button className="btn btn-accent btn-block" disabled={names.length<2} style={{opacity:names.length<2?.4:1}} onClick={()=>onResult(names)}>
               {names.length}명 추가하기
             </button>
           </div>
         )}
         {stage==='done'&&mode==='result'&&(
           <div>
-            <div className="ocr-ref-box">
-              <p style={{fontSize:12,fontWeight:700,color:'#92400e',marginBottom:6}}>📋 인식 결과 (참고용)</p>
-              <p style={{fontSize:12,color:'#78350f',whiteSpace:'pre-wrap',fontFamily:'monospace',lineHeight:1.5}}>{raw.slice(0,500)}</p>
+            <div className="ocr-ref">
+              <p style={{fontSize:12,fontWeight:700,color:'#f5c842',marginBottom:6}}>📋 인식 결과 (참고용)</p>
+              <p style={{fontSize:12,color:'#a0a8d0',whiteSpace:'pre-wrap',fontFamily:'monospace',lineHeight:1.5}}>{raw.slice(0,500)}</p>
             </div>
-            <button className="btn btn-primary btn-block" onClick={()=>onResult(raw)}>확인 — 직접 입력하기</button>
+            <button className="btn btn-accent btn-block" onClick={()=>onResult(raw)}>확인 — 직접 입력하기</button>
           </div>
         )}
       </div>
@@ -383,44 +525,45 @@ function GameModal({game,pmap,gid,dispatch,onClose}){
   const save=()=>{if(!winner)return;dispatch({type:'RECORD',gid,gameId:game.id,winner,s1:parseInt(s1)||0,s2:parseInt(s2)||0});onClose();};
   return(
     <div className="modal-bg" onClick={onClose}>
-      <div className="modal-box" onClick={e=>e.stopPropagation()}>
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
+      <div className="modal" onClick={e=>e.stopPropagation()}>
+        <div className="modal-handle"/>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:18}}>
           <span className="modal-title">경기 {game.no} 결과 입력</span>
-          <button className="modal-close" onClick={onClose}>×</button>
+          <button className="modal-close" onClick={onClose}>✕</button>
         </div>
-        <p style={{textAlign:'center',fontSize:12,color:'#94a3b8',marginBottom:12}}>승리팀을 선택하세요</p>
+        <p style={{textAlign:'center',fontSize:12,color:'#5a6080',marginBottom:14}}>승리팀을 선택하세요</p>
         <div className="winner-grid">
-          <button className={`winner-btn ${winner===1?'sel-left':''}`} onClick={()=>setWinner(1)}>
-            <div className="team-label">팀 1</div>
-            <div className="team-name">{t1}</div>
+          <button className={`winner-btn ${winner===1?'sel1':''}`} onClick={()=>setWinner(1)}>
+            <div className="wt-label">팀 1</div>
+            <div className="wt-name">{t1}</div>
             {winner===1&&<div className="win-badge">🏆 승리</div>}
           </button>
-          <button className={`winner-btn ${winner===2?'sel-right':''}`} onClick={()=>setWinner(2)}>
-            <div className="team-label">팀 2</div>
-            <div className="team-name">{t2}</div>
+          <button className={`winner-btn ${winner===2?'sel2':''}`} onClick={()=>setWinner(2)}>
+            <div className="wt-label">팀 2</div>
+            <div className="wt-name">{t2}</div>
             {winner===2&&<div className="win-badge">🏆 승리</div>}
           </button>
         </div>
-        <div className="score-row">
-          <div className="score-input-wrap">
-            <div className="score-label">팀1 점수</div>
-            <input className="score-input" type="number" inputMode="numeric" value={s1} onChange={e=>setS1(e.target.value)} placeholder="0"/>
+        <div style={{display:'flex',alignItems:'flex-end',gap:12,marginBottom:18}}>
+          <div style={{flex:1,textAlign:'center'}}>
+            <div style={{fontSize:11,color:'#5a6080',marginBottom:6}}>팀1 점수</div>
+            <input className="score-inp" type="number" inputMode="numeric" value={s1} onChange={e=>setS1(e.target.value)} placeholder="0"/>
           </div>
-          <div className="score-sep">:</div>
-          <div className="score-input-wrap">
-            <div className="score-label">팀2 점수</div>
-            <input className="score-input" type="number" inputMode="numeric" value={s2} onChange={e=>setS2(e.target.value)} placeholder="0"/>
+          <div style={{fontSize:24,fontWeight:900,color:'#2d3060',paddingBottom:14}}>:</div>
+          <div style={{flex:1,textAlign:'center'}}>
+            <div style={{fontSize:11,color:'#5a6080',marginBottom:6}}>팀2 점수</div>
+            <input className="score-inp" type="number" inputMode="numeric" value={s2} onChange={e=>setS2(e.target.value)} placeholder="0"/>
           </div>
         </div>
-        <button className="btn btn-primary btn-block" disabled={!winner} style={{opacity:!winner?.4:1}} onClick={save}>저장</button>
+        <button className="btn btn-accent btn-block" disabled={!winner} style={{opacity:!winner?.4:1}} onClick={save}>저장</button>
       </div>
     </div>
   );
 }
 
-/* ════════════════════════════
-   홈 화면
-════════════════════════════ */
+/* ════════════════════
+   홈
+════════════════════ */
 function HomeScreen({st,dispatch}){
   const [selId,setSelId]=useState(()=>st.groups[0]?.id||null);
   const [delId,setDelId]=useState(null);
@@ -430,12 +573,12 @@ function HomeScreen({st,dispatch}){
   const totalGames=st.groups.reduce((a,g)=>a+g.games.length,0);
 
   if(st.groups.length===0) return(
-    <div className="page" style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:'75vh',textAlign:'center'}}>
-      <div style={{fontSize:72,marginBottom:16}}>🏸</div>
-      <h2 style={{fontSize:22,fontWeight:900,color:'#1e293b',marginBottom:8}}>배드민턴 조 리그</h2>
-      <p style={{color:'#94a3b8',fontSize:14,marginBottom:32,lineHeight:1.6}}>1조부터 최대 10조까지<br/>대진표와 결과를 관리하세요</p>
-      <button className="btn btn-primary" style={{fontSize:17,padding:'14px 32px'}} onClick={()=>dispatch({type:'NAV',to:'newgroup'})}>
-        + 1조 만들기
+    <div className="page" style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:'78vh',textAlign:'center'}}>
+      <div style={{fontSize:80,marginBottom:20,filter:'drop-shadow(0 0 30px rgba(124,111,205,.5))'}}>🏸</div>
+      <h2 style={{fontSize:26,fontWeight:900,marginBottom:10,background:'linear-gradient(135deg,#f5c842,#e040a0)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>배드민턴 조 리그</h2>
+      <p style={{color:'#5a6080',fontSize:14,lineHeight:1.8,marginBottom:40}}>1조부터 최대 10조까지<br/>대진표와 경기 결과를 스마트하게 관리하세요</p>
+      <button className="btn btn-gold" style={{padding:'15px 40px',fontSize:17,width:'auto'}} onClick={()=>dispatch({type:'NAV',to:'newgroup'})}>
+        ✦ 1조 만들기
       </button>
     </div>
   );
@@ -443,116 +586,113 @@ function HomeScreen({st,dispatch}){
   return(
     <div>
       {/* 전체 현황 */}
-      <div className="page" style={{paddingBottom:0}}>
-        <div className="banner" style={{background:'linear-gradient(135deg,#6366f1,#8b5cf6)'}}>
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+      <div style={{padding:'14px 14px 0'}}>
+        <div className="banner-grad">
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
             <div>
-              <div className="banner-sub">전체 현황</div>
-              <div className="banner-main">{st.groups.length}개 조 운영 중</div>
+              <div style={{fontSize:12,color:'#a0a8d0',marginBottom:4}}>전체 현황</div>
+              <div style={{fontSize:22,fontWeight:900}}>{st.groups.length}개 조 운영 중</div>
             </div>
             <div style={{textAlign:'right'}}>
-              <div style={{fontSize:26,fontWeight:900}}>{totalDone}<span style={{fontSize:14,opacity:.7}}>/{totalGames}</span></div>
-              <div style={{fontSize:12,opacity:.7}}>경기 완료</div>
+              <div style={{fontSize:28,fontWeight:900,color:'#f5c842'}}>{totalDone}<span style={{fontSize:14,color:'#5a6080',fontWeight:400}}>/{totalGames}</span></div>
+              <div style={{fontSize:11,color:'#5a6080'}}>경기 완료</div>
             </div>
           </div>
           {totalGames>0&&(
-            <div className="prog-wrap" style={{marginTop:10}}>
-              <div className="prog-bar" style={{width:`${totalDone/totalGames*100}%`,background:'rgba(255,255,255,.8)'}}/>
+            <div className="prog" style={{marginTop:12}}>
+              <div className="prog-fill" style={{width:`${totalDone/totalGames*100}%`,background:'linear-gradient(90deg,#f5c842,#e040a0)'}}/>
             </div>
           )}
         </div>
       </div>
 
-      {/* 조 탭 (가로 스크롤 1조~10조) */}
-      <div className="grp-tabs no-print">
+      {/* 조 탭 */}
+      <div className="grp-scroll no-print">
         {st.groups.map(g=>{
-          const done=g.games.filter(gm=>gm.winner).length;
-          const tot=g.games.length;
-          const fin=done===tot&&tot>0;
+          const done=g.games.filter(gm=>gm.winner).length,tot=g.games.length,fin=done===tot&&tot>0;
           return(
-            <button key={g.id} className={`grp-tab ${selId===g.id?'active':''}`}
-              style={selId===g.id?{backgroundColor:g.color}:{}}
+            <button key={g.id} className={`grp-chip ${selId===g.id?'on':''}`}
+              style={selId===g.id?{background:`linear-gradient(135deg,${g.color}cc,${g.color}88)`}:{}}
               onClick={()=>setSelId(g.id)}>
               {g.name}{fin?' ✅':done>0?` ${done}/${tot}`:''}
             </button>
           );
         })}
         {st.groups.length<MAX&&(
-          <button className="grp-tab" style={{borderStyle:'dashed',color:'#6366f1',borderColor:'#a5b4fc'}}
-            onClick={()=>dispatch({type:'NAV',to:'newgroup'})}>
-            + {st.groups.length+1}조
+          <button className="grp-chip grp-chip-add" onClick={()=>dispatch({type:'NAV',to:'newgroup'})}>
+            ＋ {st.groups.length+1}조
           </button>
         )}
       </div>
 
       {/* 선택된 조 */}
       {sel&&(
-        <div className="page" style={{paddingTop:4}}>
+        <div style={{padding:'4px 14px'}}>
           <div className="card">
-            {/* 조 헤더 */}
-            <div className="card-body" style={{borderLeft:`5px solid ${sel.color}`}}>
+            <div style={{padding:'18px 18px 14px',borderLeft:`4px solid ${sel.color}`}}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
                 <div>
-                  <div style={{fontSize:18,fontWeight:900,color:'#1e293b'}}>{sel.name}</div>
-                  <div style={{fontSize:12,color:'#94a3b8',marginTop:2}}>
+                  <div style={{fontSize:20,fontWeight:900}}>{sel.name}</div>
+                  <div style={{fontSize:12,color:'#5a6080',marginTop:3}}>
                     {sel.playerIds.length}명 · {sel.playerIds.length===6?'3v3':'2v2'} · {sel.games.filter(g=>g.winner).length}/{sel.games.length}경기
                   </div>
                 </div>
-                <button className="btn-icon" onClick={()=>setDelId(sel.id)}>🗑️</button>
+                <button onClick={()=>setDelId(sel.id)} style={{fontSize:20,color:'#2d3060',padding:'4px 6px'}}>🗑️</button>
               </div>
-              <div className="prog-wrap" style={{marginTop:8}}>
-                <div className="prog-bar" style={{width:`${sel.games.length?sel.games.filter(g=>g.winner).length/sel.games.length*100:0}%`,background:sel.color}}/>
+              <div className="prog" style={{marginTop:10}}>
+                <div className="prog-fill" style={{width:`${sel.games.length?sel.games.filter(g=>g.winner).length/sel.games.length*100:0}%`,background:sel.color}}/>
               </div>
-              <div className="player-tags">
+              <div style={{marginTop:10,display:'flex',flexWrap:'wrap'}}>
                 {sel.players.map((p,i)=>(
-                  <span key={p.id} className="player-tag" style={{background:sel.color+'cc'}}>{i+1}.{p.name}</span>
+                  <span key={p.id} className="p-tag" style={{background:`${sel.color}22`,color:sel.color,border:`1px solid ${sel.color}44`}}>
+                    {i+1}.{p.name}
+                  </span>
                 ))}
               </div>
             </div>
 
-            {/* 순위 미리보기 */}
             {sel.games.some(g=>g.winner)&&(()=>{
               const rank=calcRank(sel.players,sel.games);
               return(
                 <div className="rank-preview">
                   {rank.slice(0,3).map((r,i)=>(
-                    <div key={r.player.id} className="rank-item">
-                      <span style={{fontSize:18}}>{['🥇','🥈','🥉'][i]}</span>
-                      <div><div className="rname">{r.player.name}</div><div className="rpts">{r.wins}승·{r.pts}점</div></div>
+                    <div key={r.player.id} className="rp-item">
+                      <span style={{fontSize:20}}>{['🥇','🥈','🥉'][i]}</span>
+                      <div><div className="rp-name">{r.player.name}</div><div className="rp-pts">{r.wins}승·{r.pts}점</div></div>
                     </div>
                   ))}
-                  {rank.length>3&&<span style={{fontSize:12,color:'#cbd5e1',alignSelf:'center'}}>+{rank.length-3}</span>}
+                  {rank.length>3&&<span style={{fontSize:12,color:'#2d3060',alignSelf:'center'}}>+{rank.length-3}</span>}
                 </div>
               );
             })()}
 
-            {/* 📋 📝 📊 버튼 */}
-            <div className="action-grid">
+            {/* 📋 📝 📊 액션 버튼 */}
+            <div className="card-sep"/>
+            <div className="action-row" style={{padding:'10px 14px'}}>
               {[
                 {icon:'📋',label:'대진표',tab:'bracket'},
                 {icon:'📝',label:'경기 결과',tab:'results'},
                 {icon:'📊',label:'대시보드',tab:'dashboard'},
               ].map(btn=>(
-                <button key={btn.tab} className="action-btn"
+                <button key={btn.tab} className={`action-btn ${btn.tab==='results'?'primary-action':''}`}
                   onClick={()=>dispatch({type:'NAV',to:'group',data:{gid:sel.id,tab:btn.tab}})}>
-                  <span className="icon">{btn.icon}</span>
-                  <span className="label">{btn.label}</span>
+                  <span className="a-icon">{btn.icon}</span>
+                  <span className="a-label">{btn.label}</span>
                 </button>
               ))}
             </div>
           </div>
 
-          {/* 다른 조 빠른 이동 */}
           {st.groups.length>1&&(
             <div className="card">
-              <div className="card-body">
-                <div style={{fontSize:12,fontWeight:700,color:'#94a3b8',marginBottom:10}}>다른 조 빠른 이동</div>
-                <div className="quick-btns">
+              <div style={{padding:'14px 18px'}}>
+                <div style={{fontSize:11,fontWeight:700,color:'#3a4060',marginBottom:10,letterSpacing:'.5px'}}>다른 조 빠른 이동</div>
+                <div className="quick-grid">
                   {st.groups.filter(g=>g.id!==sel.id).map(g=>{
-                    const done=g.games.filter(gm=>gm.winner).length;
+                    const d=g.games.filter(gm=>gm.winner).length;
                     return(
-                      <button key={g.id} className="quick-btn" onClick={()=>setSelId(g.id)}>
-                        {g.name} <span style={{color:'#94a3b8'}}>{done}/{g.games.length}</span>
+                      <button key={g.id} className="quick-chip" onClick={()=>setSelId(g.id)}>
+                        {g.name} <span style={{color:'#3a4060'}}>{d}/{g.games.length}</span>
                       </button>
                     );
                   })}
@@ -563,7 +703,6 @@ function HomeScreen({st,dispatch}){
         </div>
       )}
 
-      {/* 삭제 확인 */}
       {delId&&(
         <div className="dialog-bg">
           <div className="dialog">
@@ -571,7 +710,7 @@ function HomeScreen({st,dispatch}){
             <p>모든 경기 데이터가 삭제됩니다</p>
             <div className="dialog-btns">
               <button className="btn btn-outline btn-block" onClick={()=>setDelId(null)}>취소</button>
-              <button className="btn btn-danger btn-block" onClick={()=>{dispatch({type:'DEL_GROUP',id:delId});setDelId(null);}}>삭제</button>
+              <button className="btn btn-red btn-block" onClick={()=>{dispatch({type:'DEL_GROUP',id:delId});setDelId(null);}}>삭제</button>
             </div>
           </div>
         </div>
@@ -580,9 +719,9 @@ function HomeScreen({st,dispatch}){
   );
 }
 
-/* ════════════════════════════
+/* ════════════════════
    새 조 만들기
-════════════════════════════ */
+════════════════════ */
 function NewGroupScreen({st,dispatch}){
   const [players,setPlayers]=useState([]);
   const [input,setInput]=useState('');
@@ -593,46 +732,44 @@ function NewGroupScreen({st,dispatch}){
   const add=()=>{const nm=input.trim();if(!nm||n>=6)return;setPlayers(p=>[...p,{id:uid(),name:nm}]);setInput('');};
   const remove=id=>setPlayers(p=>p.filter(x=>x.id!==id));
   const addBulk=names=>{setPlayers(p=>[...p,...names.slice(0,6-p.length).map(nm=>({id:uid(),name:nm}))]);setShowOcr(false);};
-  const info=n===4?'3경기, 각자 3게임':n===5?'5경기, 각자 4게임':n===6?'5경기, 각자 5게임(3v3)':'';
+  const info=n===4?'3경기, 각자 3게임':n===5?'5경기, 각자 4게임':n===6?'5경기, 각자 5게임 (3v3)':'';
   const create=()=>{if(n<4)return;dispatch({type:'ADD_GROUP',name:grpName.trim()||`${nextNum}조`,players,playerIds:players.map(p=>p.id)});};
   if(st.groups.length>=MAX) return(
-    <div className="page" style={{textAlign:'center',paddingTop:40}}>
-      <div style={{fontSize:44,marginBottom:12}}>⚠️</div>
-      <p style={{fontWeight:700,color:'#dc2626',fontSize:16,marginBottom:20}}>최대 10개 조까지 가능합니다</p>
+    <div className="page" style={{textAlign:'center',paddingTop:60}}>
+      <div style={{fontSize:50,marginBottom:16}}>⚠️</div>
+      <p style={{color:'#ff4757',fontWeight:700,fontSize:16,marginBottom:20}}>최대 {MAX}개 조까지 가능합니다</p>
       <button className="btn btn-ghost" onClick={()=>dispatch({type:'NAV',to:'home'})}>← 홈으로</button>
     </div>
   );
   return(
     <div className="page">
       {showOcr&&<OcrModal title="📷 사진으로 선수 추가" mode="names" onResult={addBulk} onClose={()=>setShowOcr(false)}/>}
-      <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:16}}>
+      <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:20,paddingTop:8}}>
         <button className="btn btn-ghost btn-sm" onClick={()=>dispatch({type:'NAV',to:'home'})}>← 홈</button>
-        <span style={{fontSize:17,fontWeight:900,color:'#1e293b'}}>{nextNum}조 만들기</span>
-        <span style={{fontSize:12,color:'#94a3b8',marginLeft:'auto'}}>{st.groups.length}/{MAX}</span>
+        <span style={{fontSize:18,fontWeight:900}}>{nextNum}조 만들기</span>
+        <span style={{fontSize:12,color:'#3a4060',marginLeft:'auto'}}>{st.groups.length}/{MAX}</span>
       </div>
 
       <div className="card">
-        <div className="card-body">
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
-            <span style={{fontWeight:700,color:'#1e293b'}}>참가 선수 <span style={{color:'#6366f1'}}>{n}</span><span style={{color:'#cbd5e1'}}>/6</span></span>
-            <button className="btn btn-sm" style={{background:'#fffbeb',color:'#92400e',border:'1px solid #fcd34d'}}
+        <div className="card-pad">
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
+            <span style={{fontWeight:700,fontSize:15}}>참가 선수 <span style={{color:'#7c6fcd'}}>{n}</span><span style={{color:'#2d3060'}}>/6</span></span>
+            <button className="btn btn-sm" style={{background:'rgba(245,200,66,.1)',color:'#f5c842',border:'1px solid rgba(245,200,66,.25)'}}
               disabled={n>=6} onClick={()=>setShowOcr(true)}>📷 사진으로 추가</button>
           </div>
-          {n>=4&&<div className="info-box">{n}명 → {info}</div>}
+          {n>=4&&<div className="info-box">✨ {n}명 → {info}</div>}
           {players.map((p,i)=>(
-            <div key={p.id} className="player-row">
-              <span className="player-num">{i+1}</span>
-              <span className="player-name">{p.name}</span>
-              <button className="btn-icon" onClick={()=>remove(p.id)}>✕</button>
+            <div key={p.id} className="p-row">
+              <span className="p-num">{i+1}</span>
+              <span className="p-name">{p.name}</span>
+              <button className="p-del" onClick={()=>remove(p.id)}>✕</button>
             </div>
           ))}
           {n<6&&(
-            <div style={{display:'flex',gap:8,marginTop:12}}>
-              <input className="form-input" style={{flex:1,padding:'10px 14px'}}
-                placeholder="✏️ 이름 직접 입력 (수동)"
-                value={input} onChange={e=>setInput(e.target.value)}
-                onKeyDown={e=>e.key==='Enter'&&add()}/>
-              <button className="btn btn-primary" onClick={add}>추가</button>
+            <div className="inp-row" style={{marginTop:14}}>
+              <input className="inp" style={{flex:1}} placeholder="✏️  이름 직접 입력 (수동)"
+                value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&add()}/>
+              <button className="btn btn-accent" onClick={add}>추가</button>
             </div>
           )}
         </div>
@@ -640,35 +777,29 @@ function NewGroupScreen({st,dispatch}){
 
       {n>=4&&(
         <div className="card">
-          <div className="card-body">
-            <label className="form-label">조 이름</label>
-            <input className="form-input" style={{marginBottom:12}} placeholder={`${nextNum}조`}
+          <div className="card-pad">
+            <label className="inp-label">조 이름</label>
+            <input className="inp" style={{marginBottom:14}} placeholder={`${nextNum}조`}
               value={grpName} onChange={e=>setGrpName(e.target.value)}/>
-            <button className="btn btn-green" onClick={create}>
-              🏸 {grpName||nextNum+'조'} 생성!
-            </button>
+            <button className="btn btn-gold" onClick={create}>🏸  {grpName||nextNum+'조'} 생성!</button>
           </div>
         </div>
       )}
-      {n<4&&(
-        <div className="warn-box">최소 4명 필요 (현재 {n}명, {4-n}명 더 추가하세요)</div>
-      )}
+      {n<4&&<div className="warn-box">최소 4명 필요합니다 (현재 {n}명, {4-n}명 더 추가하세요)</div>}
     </div>
   );
 }
 
-/* ════════════════════════════
+/* ════════════════════
    조 상세
-════════════════════════════ */
+════════════════════ */
 function GroupScreen({st,dispatch}){
   const {gid,tab}=st.navData||{};
   const grp=st.groups.find(g=>g.id===gid);
   if(!grp){dispatch({type:'NAV',to:'home'});return null;}
   const pmap={};grp.players.forEach(p=>{pmap[p.id]=p.name;});
-  const done=grp.games.filter(g=>g.winner).length;
-  const total=grp.games.length;
-  const rank=calcRank(grp.players,grp.games);
-  const allDone=done===total&&total>0;
+  const done=grp.games.filter(g=>g.winner).length,total=grp.games.length;
+  const rank=calcRank(grp.players,grp.games),allDone=done===total&&total>0;
   const [ocrMode,setOcrMode]=useState(null);
   const [ocrRef,setOcrRef]=useState('');
   const [gameModal,setGameModal]=useState(null);
@@ -680,44 +811,43 @@ function GroupScreen({st,dispatch}){
       {/* 탭바 */}
       <div className="tab-bar no-print">
         <button className="tab-btn" onClick={()=>dispatch({type:'NAV',to:'home'})}>
-          <span className="t-icon">←</span><span>목록</span>
+          <span className="ti">←</span><span>목록</span>
         </button>
         {[{id:'bracket',icon:'📋',label:'대진표'},{id:'results',icon:'📝',label:'경기결과'},{id:'dashboard',icon:'📊',label:'대시보드'}].map(t=>(
-          <button key={t.id} className={`tab-btn ${tab===t.id?'active':''}`} onClick={()=>dispatch({type:'SET_TAB',tab:t.id})}>
-            <span className="t-icon">{t.icon}</span><span>{t.label}</span>
+          <button key={t.id} className={`tab-btn ${tab===t.id?'on':''}`} onClick={()=>dispatch({type:'SET_TAB',tab:t.id})}>
+            <span className="ti">{t.icon}</span><span>{t.label}</span>
           </button>
         ))}
       </div>
 
-      {/* 조 이름 + 진행 */}
-      <div className="page" style={{paddingTop:8,paddingBottom:4}}>
-        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
-          <span style={{fontSize:16,fontWeight:900,color:'#1e293b'}}>{grp.name}</span>
-          <span style={{fontSize:12,color:'#94a3b8'}}>{grp.playerIds.length}명 · {done}/{total}경기</span>
+      {/* 조 정보 바 */}
+      <div style={{padding:'12px 14px 0'}}>
+        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+          <span style={{width:10,height:10,borderRadius:'50%',background:grp.color,display:'inline-block',flexShrink:0}}/>
+          <span style={{fontSize:17,fontWeight:900}}>{grp.name}</span>
+          <span style={{fontSize:12,color:'#5a6080'}}>{grp.playerIds.length}명 · {done}/{total}경기</span>
         </div>
-        <div className="prog-wrap"><div className="prog-bar" style={{width:`${total?done/total*100:0}%`,background:grp.color}}/></div>
+        <div className="prog"><div className="prog-fill" style={{width:`${total?done/total*100:0}%`,background:grp.color}}/></div>
       </div>
 
       {/* ── 대진표 ── */}
       {tab==='bracket'&&(
-        <div className="page" style={{paddingTop:0}}>
-          {ocrMode==='names'&&<OcrModal title="📷 대진표 사진 인식" mode="names" onResult={ns=>{alert(`인식: ${ns.join(', ')}`);setOcrMode(null);}} onClose={()=>setOcrMode(null)}/>}
-          <div className="method-grid">
-            <button className="method-btn photo" onClick={()=>setOcrMode('names')}>
-              <span className="m-icon">📷</span>
-              <div><div className="m-title">사진 촬영</div><div className="m-sub">OCR 자동 인식</div></div>
+        <div className="page" style={{paddingTop:12}}>
+          {ocrMode==='names'&&<OcrModal title="📷 대진표 사진 인식" mode="names" onResult={ns=>{alert(`인식된 이름: ${ns.join(', ')}`);setOcrMode(null);}} onClose={()=>setOcrMode(null)}/>}
+          <div className="method-row">
+            <button className="method-card photo" onClick={()=>setOcrMode('names')}>
+              <span className="mc-icon">📷</span>
+              <div><div className="mc-title">사진 촬영</div><div className="mc-sub">OCR 자동 인식</div></div>
             </button>
-            <button className="method-btn manual" onClick={()=>dispatch({type:'NAV',to:'newgroup'})}>
-              <span className="m-icon">✏️</span>
-              <div><div className="m-title">수동 입력</div><div className="m-sub">이름 직접 입력</div></div>
+            <button className="method-card manual" onClick={()=>dispatch({type:'NAV',to:'newgroup'})}>
+              <span className="mc-icon">✏️</span>
+              <div><div className="mc-title">수동 입력</div><div className="mc-sub">이름 직접 입력</div></div>
             </button>
           </div>
           <div className="card">
-            <div className="card-body">
-              <div style={{fontSize:12,fontWeight:700,color:'#94a3b8',marginBottom:8}}>참가 선수 ({grp.playerIds.length}명)</div>
-              <div className="player-tags">
-                {grp.players.map((p,i)=><span key={p.id} className="player-tag" style={{background:grp.color}}>{i+1}.{p.name}</span>)}
-              </div>
+            <div className="card-pad" style={{paddingBottom:10}}>
+              <div style={{fontSize:11,fontWeight:700,color:'#3a4060',marginBottom:10,letterSpacing:'.5px'}}>참가 선수 ({grp.playerIds.length}명)</div>
+              <div>{grp.players.map((p,i)=><span key={p.id} className="p-tag" style={{background:`${grp.color}20`,color:grp.color,border:`1px solid ${grp.color}40`}}>{i+1}.{p.name}</span>)}</div>
             </div>
           </div>
           {grp.games.map(game=>{
@@ -726,69 +856,69 @@ function GroupScreen({st,dispatch}){
             const byeN=game.bye.map(id=>pmap[id]||'?');
             return(
               <div key={game.id} className="match-card">
-                <div className="match-header">
-                  <span className="match-no">경기 {game.no}</span>
-                  {game.winner?<span className="match-status-done">✓ 완료</span>:<span className="match-status-todo">대기</span>}
+                <div className="match-head">
+                  <span className="match-no-badge">경기 {game.no}</span>
+                  {game.winner?<span className="status-done">✓ 완료</span>:<span className="status-todo">대기</span>}
                 </div>
-                <div className="match-row">
-                  <div className={`match-team ${game.winner===1?'win-left':''}`}>{t1}</div>
-                  <div className={`match-score ${!game.winner?'vs':''}`}>{game.winner?`${game.s1}:${game.s2}`:'VS'}</div>
-                  <div className={`match-team ${game.winner===2?'win-right':''}`}>{t2}</div>
+                <div className="match-teams">
+                  <div className={`team-box ${game.winner===1?'win':''}`}>{t1}</div>
+                  <div className={`vs-score ${!game.winner?'vs-txt':''}`}>{game.winner?`${game.s1}:${game.s2}`:'VS'}</div>
+                  <div className={`team-box ${game.winner===2?'win-r':''}`}>{t2}</div>
                 </div>
                 {byeN.length>0&&<div className="match-bye">💺 쉬는 선수: {byeN.join(', ')}</div>}
               </div>
             );
           })}
-          <button className="btn btn-outline btn-block no-print" style={{marginTop:4}} onClick={()=>window.print()}>🖨️ 대진표 인쇄</button>
+          <button className="btn btn-outline btn-block no-print" style={{marginTop:6}} onClick={()=>window.print()}>🖨️ 대진표 인쇄</button>
         </div>
       )}
 
       {/* ── 경기 결과 ── */}
       {tab==='results'&&(
-        <div className="page" style={{paddingTop:0}}>
+        <div className="page" style={{paddingTop:12}}>
           {ocrMode==='result'&&<OcrModal title="📷 결과지 사진 인식" mode="result" onResult={t=>{setOcrRef(t);setOcrMode(null);}} onClose={()=>setOcrMode(null)}/>}
           {gameModal&&<GameModal game={gameModal} pmap={pmap} gid={gid} dispatch={dispatch} onClose={()=>setGameModal(null)}/>}
-          <div className="method-grid">
-            <button className="method-btn photo" onClick={()=>setOcrMode('result')}>
-              <span className="m-icon">📷</span>
-              <div><div className="m-title">사진 촬영</div><div className="m-sub">결과지 OCR 참고</div></div>
+          <div className="method-row">
+            <button className="method-card photo" onClick={()=>setOcrMode('result')}>
+              <span className="mc-icon">📷</span>
+              <div><div className="mc-title">사진 촬영</div><div className="mc-sub">결과지 OCR 참고</div></div>
             </button>
-            <div className="method-btn manual" style={{cursor:'default'}}>
-              <span className="m-icon">✏️</span>
-              <div><div className="m-title">수동 입력</div><div className="m-sub">아래 경기 탭하기</div></div>
+            <div className="method-card manual" style={{cursor:'default'}}>
+              <span className="mc-icon">✏️</span>
+              <div><div className="mc-title">수동 입력</div><div className="mc-sub">아래 경기 탭하기</div></div>
             </div>
           </div>
           {ocrRef&&(
-            <div className="ocr-ref-box">
+            <div className="ocr-ref" style={{marginBottom:12}}>
               <div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}>
-                <span style={{fontSize:12,fontWeight:700,color:'#92400e'}}>📋 OCR 참고</span>
-                <button style={{fontSize:12,color:'#b45309',background:'none',border:'none',cursor:'pointer'}} onClick={()=>setOcrRef('')}>닫기</button>
+                <span style={{fontSize:12,fontWeight:700,color:'#f5c842'}}>📋 OCR 참고</span>
+                <button style={{fontSize:12,color:'#a0a8d0',background:'none',border:'none',cursor:'pointer'}} onClick={()=>setOcrRef('')}>닫기</button>
               </div>
-              <p style={{fontSize:12,color:'#78350f',whiteSpace:'pre-wrap',fontFamily:'monospace'}}>{ocrRef.slice(0,400)}</p>
+              <p style={{fontSize:12,color:'#a0a8d0',whiteSpace:'pre-wrap',fontFamily:'monospace'}}>{ocrRef.slice(0,400)}</p>
             </div>
           )}
           <div className="card" style={{marginBottom:10}}>
-            <div className="card-body" style={{paddingBottom:10}}>
+            <div style={{padding:'14px 18px'}}>
               <div style={{display:'flex',justifyContent:'space-between',fontSize:13,fontWeight:700,marginBottom:8}}>
-                <span style={{color:'#475569'}}>진행률</span>
-                <span style={{color:grp.color}}>{done}/{total}</span>
+                <span style={{color:'#a0a8d0'}}>진행률</span>
+                <span style={{color:grp.color}}>{done}/{total} 경기</span>
               </div>
-              <div className="prog-wrap"><div className="prog-bar" style={{width:`${total?done/total*100:0}%`,background:grp.color}}/></div>
+              <div className="prog"><div className="prog-fill" style={{width:`${total?done/total*100:0}%`,background:grp.color}}/></div>
             </div>
           </div>
           {grp.games.map(game=>{
             const t1=game.team1.map(id=>pmap[id]||'?').join(' + ');
             const t2=game.team2.map(id=>pmap[id]||'?').join(' + ');
             return(
-              <div key={game.id} className={`match-card ${game.winner?'done':'todo'}`} onClick={()=>setGameModal(game)}>
-                <div className="match-header">
-                  <span className="match-no">경기 {game.no}</span>
-                  {game.winner?<span className="match-status-done">✓ 탭하여 수정</span>:<span className="match-status-todo">👆 탭하여 입력</span>}
+              <div key={game.id} className={`match-card clickable ${game.winner?'done-card':'todo-card'}`} onClick={()=>setGameModal(game)}>
+                <div className="match-head">
+                  <span className="match-no-badge">경기 {game.no}</span>
+                  {game.winner?<span className="status-done">✓ 탭하여 수정</span>:<span className="status-todo">👆 탭하여 입력</span>}
                 </div>
-                <div className="match-row">
-                  <div className={`match-team ${game.winner===1?'win-left':''}`}>{t1}</div>
-                  <div className={`match-score ${!game.winner?'vs':''}`}>{game.winner?`${game.s1}:${game.s2}`:'VS'}</div>
-                  <div className={`match-team ${game.winner===2?'win-right':''}`}>{t2}</div>
+                <div className="match-teams">
+                  <div className={`team-box ${game.winner===1?'win':''}`}>{t1}</div>
+                  <div className={`vs-score ${!game.winner?'vs-txt':''}`}>{game.winner?`${game.s1}:${game.s2}`:'VS'}</div>
+                  <div className={`team-box ${game.winner===2?'win-r':''}`}>{t2}</div>
                 </div>
               </div>
             );
@@ -798,60 +928,63 @@ function GroupScreen({st,dispatch}){
 
       {/* ── 대시보드 ── */}
       {tab==='dashboard'&&(
-        <div className="page" style={{paddingTop:0}}>
+        <div className="page" style={{paddingTop:12}}>
           {allDone&&(
-            <div className="champ-banner">
-              <div style={{fontSize:40,marginBottom:4}}>🏆</div>
-              <div style={{fontSize:13,opacity:.8,marginBottom:4}}>최종 우승</div>
+            <div className="champ-card">
+              <div style={{fontSize:48,marginBottom:8}}>🏆</div>
+              <div style={{fontSize:13,color:'#a07020',marginBottom:4}}>최종 우승</div>
               <div className="champ-name">{rank[0]?.player.name}</div>
-              <div style={{fontSize:13,opacity:.8}}>{rank[0]?.wins}승 · {rank[0]?.pts}점</div>
-              <button className="btn" style={{marginTop:10,background:'rgba(255,255,255,.25)',color:'#fff',padding:'8px 20px'}} onClick={()=>setConfetti(true)}>🎉 축하!</button>
+              <div style={{fontSize:13,color:'#c09040',marginTop:4}}>{rank[0]?.wins}승 · {rank[0]?.pts}점</div>
+              <button className="btn" style={{marginTop:14,background:'rgba(245,200,66,.2)',color:'#f5c842',border:'1px solid rgba(245,200,66,.3)',padding:'9px 24px'}}
+                onClick={()=>setConfetti(true)}>🎉 축하!</button>
             </div>
           )}
-          {/* 개인순위 */}
-          <div className="card" style={{marginBottom:10}}>
-            <div className="card-body" style={{paddingBottom:0,borderLeft:`4px solid ${grp.color}`}}>
-              <div style={{fontWeight:900,fontSize:15,color:'#1e293b'}}>개인 순위</div>
-              <div style={{fontSize:12,color:'#94a3b8',marginTop:2,marginBottom:12}}>점수 높은순 내림차순 · 동점시 패 적은순</div>
+
+          <div className="card" style={{marginBottom:12}}>
+            <div style={{padding:'16px 18px 0',borderLeft:`4px solid ${grp.color}`}}>
+              <div style={{fontSize:16,fontWeight:900}}>개인 순위</div>
+              <div style={{fontSize:11,color:'#3a4060',marginTop:2,marginBottom:14}}>점수 높은순 내림차순 · 동점시 패 적은순</div>
             </div>
-            <table>
+            <table className="rank-table">
               <thead><tr>
-                <td style={{textAlign:'center'}}>순위</td>
+                <th style={{textAlign:'center'}}>순위</th>
                 <th>이름</th>
                 <th>경기</th><th>승</th><th>패</th>
-                <th style={{color:'#6366f1'}}>점수</th>
+                <th style={{color:'#f5c842'}}>점수</th>
               </tr></thead>
               <tbody>
                 {rank.map((r,i)=>(
-                  <tr key={r.player.id} className={i===0?'rank-gold':i===1?'rank-silver':i===2?'rank-bronze':''}>
-                    <td style={{fontSize:18}}>{['🥇','🥈','🥉'][i]||i+1}</td>
+                  <tr key={r.player.id} className={i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':''}>
+                    <td style={{fontSize:20}}>{['🥇','🥈','🥉'][i]||i+1}</td>
                     <td>{r.player.name}</td>
-                    <td style={{color:'#94a3b8'}}>{r.played}</td>
-                    <td style={{color:'#6366f1',fontWeight:700}}>{r.wins}</td>
-                    <td style={{color:'#f43f5e'}}>{r.losses}</td>
-                    <td style={{color:'#6366f1',fontWeight:900,fontSize:15}}>{r.pts}</td>
+                    <td style={{color:'#3a4060'}}>{r.played}</td>
+                    <td className="win-cell">{r.wins}</td>
+                    <td className="loss-cell">{r.losses}</td>
+                    <td className="pts-cell">{r.pts}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          {/* 경기결과 종합 */}
+
           <div className="card">
-            <div className="card-body" style={{paddingBottom:0}}>
-              <div style={{fontWeight:700,fontSize:14,color:'#1e293b',marginBottom:4}}>경기 결과 종합</div>
+            <div style={{padding:'16px 18px 4px'}}>
+              <div style={{fontSize:14,fontWeight:900,marginBottom:4}}>경기 결과 종합</div>
             </div>
-            {grp.games.map(game=>{
-              const t1=game.team1.map(id=>pmap[id]||'?').join('+');
-              const t2=game.team2.map(id=>pmap[id]||'?').join('+');
-              return(
-                <div key={game.id} className="result-row">
-                  <span className="result-no">경기{game.no}</span>
-                  <span className={`result-t1 ${game.winner===1?'winner':''}`}>{t1}</span>
-                  <span className="result-score">{game.winner?`${game.s1}:${game.s2}`:'-:-'}</span>
-                  <span className={`result-t2 ${game.winner===2?'winner':''}`}>{t2}</span>
-                </div>
-              );
-            })}
+            <div style={{padding:'0 18px 8px'}}>
+              {grp.games.map(game=>{
+                const t1=game.team1.map(id=>pmap[id]||'?').join('+');
+                const t2=game.team2.map(id=>pmap[id]||'?').join('+');
+                return(
+                  <div key={game.id} className="result-row">
+                    <span className="r-no">경기{game.no}</span>
+                    <span className={`r-t1 ${game.winner===1?'w':''}`}>{t1}</span>
+                    <span className="r-score">{game.winner?`${game.s1}:${game.s2}`:'-:-'}</span>
+                    <span className={`r-t2 ${game.winner===2?'w':''}`}>{t2}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
           <button className="btn btn-outline btn-block no-print" style={{marginTop:8}} onClick={()=>window.print()}>🖨️ 결과표 인쇄</button>
         </div>
@@ -860,25 +993,33 @@ function GroupScreen({st,dispatch}){
   );
 }
 
-/* ════════════════════════════
+/* ════════════════════
    앱
-════════════════════════════ */
+════════════════════ */
 function App(){
   const [st,dispatch]=useReducer(reducer,null,load);
-  useEffect(()=>{try{localStorage.setItem('bdm_v8',JSON.stringify(st));}catch{}},[st]);
+  const [showSettings,setShowSettings]=useState(false);
+  useEffect(()=>{try{localStorage.setItem('bdm_v9',JSON.stringify(st));}catch{}},[st]);
   const pending=st.groups.reduce((a,g)=>a+g.games.filter(gm=>!gm.winner).length,0);
   return(
-    <div style={{minHeight:'100vh',background:'#f1f5f9'}}>
-      <div className="header no-print">
-        <button className="header-title" onClick={()=>dispatch({type:'NAV',to:'home'})}>🏸 배드민턴 조 리그</button>
-        <div style={{display:'flex',alignItems:'center',gap:8}}>
-          {pending>0&&<span className="badge-red">대기 {pending}</span>}
-          <span style={{fontSize:11,color:'#cbd5e1'}}>v6</span>
+    <div style={{minHeight:'100vh',background:'var(--bg)'}}>
+      {/* 헤더 */}
+      <div className="app-header no-print">
+        <div className="header-logo">
+          🏸 <span>배드민턴 조 리그</span>
+        </div>
+        <div className="header-actions">
+          {pending>0&&<span className="badge-pill">대기 {pending}</span>}
+          <button className="icon-btn" onClick={()=>dispatch({type:'NAV',to:'home'})}>🏠</button>
+          <button className="icon-btn" onClick={()=>setShowSettings(true)}>⚙️</button>
         </div>
       </div>
-      {st.nav==='group'    && <GroupScreen   st={st} dispatch={dispatch}/>}
-      {st.nav==='newgroup' && <NewGroupScreen st={st} dispatch={dispatch}/>}
-      {st.nav==='home'     && <HomeScreen     st={st} dispatch={dispatch}/>}
+
+      {st.nav==='group'    &&<GroupScreen    st={st} dispatch={dispatch}/>}
+      {st.nav==='newgroup' &&<NewGroupScreen  st={st} dispatch={dispatch}/>}
+      {st.nav==='home'     &&<HomeScreen      st={st} dispatch={dispatch}/>}
+
+      {showSettings&&<SettingsPanel st={st} dispatch={dispatch} onClose={()=>setShowSettings(false)}/>}
     </div>
   );
 }
